@@ -4,3 +4,4 @@ node_modules/
 .vercel/
 # original design exports (extracted copies live in _design/)
 *.zip
+.vercel
