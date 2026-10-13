@@ -30,13 +30,10 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* demo bar */
-.demobar{height:var(--bar-h);background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;font-size:13px}
-.demobar .tag{color:var(--sub-on-navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.demobar .tag b{color:var(--hit);font-weight:600}
+.demobar{height:var(--bar-h);background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 16px;font-size:13px}
 .seg{display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:3px;flex-shrink:0}
 .seg button{border:0;background:transparent;color:var(--sub-on-navy);font-size:13px;padding:5px 10px;border-radius:6px;cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap}
 .seg button[aria-pressed="true"]{background:#fff;color:var(--ink);font-weight:600}
-@media (max-width:520px){.demobar .tag .long{display:none}}
 
 /* ===== Admin map view ===== */
 .topnav{background:var(--surface);border-bottom:1px solid var(--line);padding:12px 24px;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:center}
@@ -218,7 +215,6 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 <body>
 
 <div class="demobar">
-  <div class="tag"><b>ต้นแบบ</b> · ข้อมูลตัวอย่าง<span class="long"> ทั้งหมดเป็นข้อมูลสมมติ กดเล่นได้จริง</span></div>
   <div class="seg" role="group" aria-label="เลือกมุมมอง">
     <button type="button" data-act="view" data-view="map" aria-pressed="true">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>ผังคลัง (แอดมิน)</button>
