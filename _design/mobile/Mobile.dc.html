@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>มือถือ ค้นหาสินค้า</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F4FD1}a:hover{color:#163A9C}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF1F4; color: #14202B; font-family: 'IBM Plex Sans Thai', sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+<div style="background: #22364A; color: #FFFFFF; padding: 28px 18px 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 22px; font-weight: 700">ค้นหาสินค้า</div>
+<label for="m-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">ค้นหาสินค้า</label>
+<div style="display: flex; gap: 8px">
+<div style="flex: 1; display: flex; gap: 8px; align-items: center; background: #FFFFFF; border-radius: 10px; padding: 0 12px; height: 48px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A5A6A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+<input id="m-search" type="search" value="ครีมกันแดด" style="flex: 1; min-width: 0; border: 0; outline: none; font-family: inherit; font-size: 16px; color: #14202B; background: transparent">
+</div>
+<button type="button" aria-label="สแกนบาร์โค้ด" style="width: 48px; height: 48px; border: 0; border-radius: 10px; background: #F5B40A; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14202B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"></path></svg></button>
+</div>
+<div style="font-size: 14px; color: #C9D6E3">พบใน 3 ช่อง · ร้านมะลิ คอสเมติก</div>
+</div>
+
+<div style="flex: 1; overflow: hidden; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+
+<div style="background: #FFFFFF; border-radius: 14px; border: 2px solid #F5B40A; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 16px; font-weight: 600">ครีมกันแดด SPF50</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #4A5A6A">MLI-SUN50</div>
+</div>
+<div style="font-size: 16px; font-weight: 700; white-space: nowrap">24 ลัง</div>
+</div>
+<div style="background: #F5B40A; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; color: #14202B">ไปที่ช่อง</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; line-height: 1.1">W1-C07-2</div>
+<div style="font-size: 14px">โกดัง 1 · แถว C · ช่อง 07 · ชั้น 2</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; align-items: center; padding: 4px 0">
+<div style="width: 80%; height: 6px; background: #22364A; border-radius: 50% 50% 0 0 / 100% 100% 0 0; margin-bottom: 6px" aria-hidden="true"></div>
+<sc-for list="{{mini}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; gap: 3px; align-items: center">
+<div style="width: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #4A5A6A; text-align: center">{{r.letter}}</div>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="14"><div style="{{c.style}}"></div></sc-for>
+</div>
+</sc-for>
+</div>
+<button type="button" style="height: 48px; border: 0; border-radius: 10px; background: #1F4FD1; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer">สแกน QR ที่ช่องเพื่อยืนยัน</button>
+</div>
+
+<div style="background: #FFFFFF; border-radius: 14px; border: 1px solid #D5DCE3; padding: 14px 16px; display: flex; gap: 12px; align-items: center">
+<span style="background: #F5B40A; border-radius: 6px; padding: 4px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600">W1-E11-1</span>
+<div style="flex: 1; font-size: 15px">ครีมกันแดด SPF50</div>
+<div style="font-size: 15px; font-weight: 600">12 ลัง</div>
+</div>
+<div style="background: #FFFFFF; border-radius: 14px; border: 1px solid #D5DCE3; padding: 14px 16px; display: flex; gap: 12px; align-items: center">
+<span style="background: #F5B40A; border-radius: 6px; padding: 4px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600">W2-A03-3</span>
+<div style="flex: 1; font-size: 15px">ครีมกันแดด SPF50</div>
+<div style="font-size: 15px; font-weight: 600">8 ลัง</div>
+</div>
+</div>
+
+<nav aria-label="เมนูล่าง" style="background: #FFFFFF; border-top: 1px solid #D5DCE3; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 4px 18px">
+<a href="Map.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; text-decoration: none; color: #4A5A6A; font-size: 12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>ผังคลัง</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; text-decoration: none; color: #1F4FD1; font-size: 12px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>ค้นหา</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; text-decoration: none; color: #4A5A6A; font-size: 12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"></path></svg>สแกน</a>
+<a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0; text-decoration: none; color: #4A5A6A; font-size: 12px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg>รับ / เบิก</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var pattern = {
+      B: [1, 1, 0, 2, 1, 0, 1, 1, 1, 0, 0, 1, 2, 1],
+      C: [1, 0, 1, 1, 2, 1, 3, 1, 0, 1, 1, 0, 1, 1],
+      D: [0, 1, 1, 0, 1, 1, 1, 2, 1, 1, 0, 0, 1, 0]
+    };
+    var looks = [
+      'background: #FFFFFF; border: 1.5px solid #9AA8B6;',
+      'background: #22364A; border: 1.5px solid #22364A;',
+      'background: #A9BCCF; border: 1.5px solid #A9BCCF;',
+      'background: #F5B40A; border: 1.5px solid #14202B;'
+    ];
+    var mini = ['B', 'C', 'D'].map(function (r) {
+      return {
+        letter: r,
+        cells: pattern[r].map(function (v, i) {
+          return { style: 'width: 16px; height: 16px; box-sizing: border-box; border-radius: 4px 4px 2px 2px; ' + looks[v] + (i === 7 ? ' margin-left: 10px;' : '') };
+        })
+      };
+    });
+    return { mini: mini };
+  }
+}
+</script>
+</body>
+</html>
