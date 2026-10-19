@@ -8,13 +8,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-/* Layout: slim demo bar on top, then either the admin map (main + aside) or the staff phone app. Single light look, matching the approved design. */
+/* Layout: slim view switcher on top, then either the admin zone map (main + aside) or the staff phone app. Single light look, matching the approved design. */
 :root{
   --bg:#EEF1F4; --surface:#FFFFFF; --soft:#F3F6F9; --chip:#F7F9FB;
   --ink:#14202B; --ink-2:#34424F; --muted:#4A5A6A; --sub-on-navy:#C9D6E3;
   --line:#D5DCE3; --line-2:#E4EAF1; --btn-line:#B9C5D1; --tab-line:#C9D3DD;
   --navy:#22364A; --res:#A9BCCF; --empty-line:#9AA8B6; --hit:#F5B40A;
-  --accent:#1F4FD1; --accent-hover:#163A9C; --ok:#1E7A4C;
+  --accent:#1F4FD1; --accent-hover:#163A9C; --beam:#C8102E;
   --font:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
   --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
   --bar-h:44px;
@@ -29,7 +29,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .mono{font-family:var(--mono)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-/* demo bar */
+/* view switcher */
 .demobar{height:var(--bar-h);background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 16px;font-size:13px}
 .seg{display:flex;gap:2px;background:rgba(255,255,255,.08);border-radius:8px;padding:3px;flex-shrink:0}
 .seg button{border:0;background:transparent;color:var(--sub-on-navy);font-size:13px;padding:5px 10px;border-radius:6px;cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap}
@@ -45,7 +45,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .me{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--ink-2)}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
 
-.wrap{max-width:1400px;margin:0 auto;padding:24px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.wrap{max-width:1440px;margin:0 auto;padding:24px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
 .mapmain{flex:999 1 760px;min-width:0;display:flex;flex-direction:column;gap:16px}
 .side{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:16px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
@@ -62,34 +62,40 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 
 .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 .tabs{display:flex;flex-wrap:wrap;gap:8px}
-.tabs .sep{width:1px;background:var(--line);margin:0 4px}
-.tab{min-height:44px;padding:0 16px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--ink);border:1px solid var(--tab-line)}
+.tab{min-height:44px;padding:0 14px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--ink);border:1px solid var(--tab-line)}
+.tab.mono{font-family:var(--mono)}
 .tab[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
 .tab:not([aria-pressed="true"]):hover{border-color:var(--navy)}
 .stats{font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
 
-.mapcard{padding:24px 20px 20px;overflow-x:auto}
-.grid{width:748px;margin:0 auto;display:flex;flex-direction:column;gap:6px}
-.dock{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:18px}
-.dock .bar{width:86%;height:12px;background:var(--navy);border-radius:50% 50% 0 0/100% 100% 0 0}
-.dock .txt{font-size:13px;color:var(--muted);letter-spacing:.04em}
-.grow{display:flex;gap:6px;align-items:center}
-.grow .rl{width:28px;text-align:center;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink-2)}
-.grow .aisle{width:36px}
-.colhead{font-family:var(--mono);font-size:11px;color:var(--muted)}
-.colhead div{width:40px;text-align:center}
-.colhead .rl{font-size:11px}
-.slot{width:40px;height:40px;border-radius:10px 10px 4px 4px;font-family:var(--mono);font-size:12px;font-weight:600;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:opacity .15s,transform .1s,box-shadow .15s;border:2px solid}
+.mapcard{padding:20px;overflow-x:auto}
+.zone-title{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.zone-title b{font-size:17px}
+.zone-title span{font-size:13px;color:var(--muted)}
+.zone{display:flex;gap:10px;width:max-content;margin:0 auto}
+.band{width:28px;flex-shrink:0;border-radius:8px;background:var(--soft);border:1.5px dashed var(--btn-line);display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.3em;color:var(--muted)}
+.racks{display:flex;flex-direction:column;gap:22px}
+.rack{display:flex;flex-direction:column;gap:4px}
+.rack-head{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.rack-sign{font-family:var(--mono);font-size:15px;font-weight:600;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:4px;padding:1px 8px;line-height:1.3;box-shadow:0 3px 0 -1px var(--beam)}
+.rack-stat{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.rrow{display:flex;gap:8px;align-items:center}
+.lvl{width:26px;flex-shrink:0;text-align:right;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.bay{display:flex;gap:3px}
+.bay-h{width:47px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.rrow.floor .bay{border-bottom:3px solid var(--btn-line);padding-bottom:3px}
+.slot{width:22px;height:22px;border-radius:6px 6px 3px 3px;cursor:pointer;padding:0;transition:opacity .15s,transform .1s,box-shadow .15s;border:1.5px solid}
 .slot:hover{transform:translateY(-2px)}
-.slot.is-empty{background:#fff;border-color:var(--empty-line);color:var(--muted)}
-.slot.is-res{background:var(--res);border-color:var(--res);color:var(--ink)}
-.slot.is-occ{background:var(--navy);border-color:var(--navy);color:#fff}
-.slot.is-hit{background:var(--hit);border-color:var(--hit);color:var(--ink)}
-.slot.is-dim{opacity:.35}
-.slot.is-sel{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--accent);opacity:1}
-.legend{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin-top:18px;font-size:14px;color:var(--ink-2)}
+.slot.is-empty{background:#fff;border-color:var(--empty-line)}
+.slot.is-res{background:var(--res);border-color:var(--res)}
+.slot.is-occ{background:var(--navy);border-color:var(--navy)}
+.slot.is-hit{background:var(--hit);border-color:var(--hit)}
+.slot.is-dim{opacity:.3}
+.slot.is-sel{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent);opacity:1;position:relative;z-index:1}
+.legend{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin-top:20px;font-size:14px;color:var(--ink-2)}
 .legend div{display:flex;gap:8px;align-items:center}
 .legend span{width:18px;height:18px;border-radius:5px 5px 2px 2px;display:inline-block}
+.legend .k{font-family:var(--mono);font-size:12px;color:var(--muted)}
 
 .results{padding:18px;display:flex;flex-direction:column;gap:10px}
 .results h2{font-size:15px;font-weight:600;margin:0}
@@ -106,6 +112,10 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .dhead .k{font-size:13px;color:var(--muted)}
 .dhead .code{font-family:var(--mono);font-size:28px;font-weight:600}
 .dhead .w{font-size:14px;color:var(--ink-2)}
+.codeparts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.codeparts div{background:var(--soft);border-radius:8px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.codeparts b{font-family:var(--mono);font-size:16px}
+.codeparts span{font-size:12px;color:var(--muted)}
 .pill{padding:6px 12px;border-radius:999px;font-size:14px;font-weight:600;white-space:nowrap}
 .pill.occ{background:var(--navy);color:#fff}
 .pill.res{background:var(--res);color:var(--ink)}
@@ -125,13 +135,12 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .btn:hover{border-color:var(--navy)}
 .btn.primary{border:0;background:var(--accent);color:#fff}
 .btn.primary:hover{background:var(--accent-hover)}
-.btn.danger{color:#A12A2A}
 
 @media (max-width:600px){
   .topnav{padding:12px 16px}
   .wrap{padding:16px}
   .searchcard{padding:14px 16px}
-  .mapcard{padding:20px 12px 16px}
+  .mapcard{padding:16px 12px}
 }
 
 /* ===== Staff phone view ===== */
@@ -140,10 +149,8 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .app{width:100%;height:100%;display:flex;flex-direction:column;background:var(--bg);color:var(--ink)}
 .m-head{background:var(--navy);color:#fff;padding:28px 18px 18px;display:flex;flex-direction:column;gap:12px}
 .m-head h1{font-size:22px;font-weight:700;margin:0}
-.m-row{display:flex;gap:8px}
-.m-search{flex:1;display:flex;gap:8px;align-items:center;background:#fff;border-radius:10px;padding:0 6px 0 12px;height:48px;min-width:0}
+.m-search{display:flex;gap:8px;align-items:center;background:#fff;border-radius:10px;padding:0 6px 0 12px;height:48px;min-width:0}
 .m-search input{flex:1;min-width:0;border:0;outline:none;font-size:16px;color:var(--ink);background:transparent;height:100%}
-.m-scan{width:48px;height:48px;border:0;border-radius:10px;background:var(--hit);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0}
 .m-sub{font-size:14px;color:var(--sub-on-navy);min-height:20px}
 .m-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
 .m-card{background:#fff;border-radius:14px;border:2px solid var(--hit);padding:16px;display:flex;flex-direction:column;gap:12px}
@@ -156,29 +163,31 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 .goto .k{font-size:13px}
 .goto .code{font-family:var(--mono);font-size:30px;font-weight:600;line-height:1.1}
 .goto .w{font-size:14px}
-.mini{display:flex;flex-direction:column;gap:4px;align-items:center;padding:4px 0}
-.mini .bar{width:80%;height:6px;background:var(--navy);border-radius:50% 50% 0 0/100% 100% 0 0;margin-bottom:6px}
-.mini .r{display:flex;gap:3px;align-items:center}
-.mini .rl{width:14px;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center}
+.mini{display:flex;flex-direction:column;gap:3px;align-items:center;padding:4px 0}
+.mini .r{display:flex;gap:6px;align-items:center}
+.mini .rl{width:18px;font-family:var(--mono);font-size:10px;color:var(--muted);text-align:right}
+.mini .b{display:flex;gap:2px}
+.mini .bh{width:34px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.mini .bh.on{color:var(--ink);font-weight:600}
 .mini .c{width:16px;height:16px;border-radius:4px 4px 2px 2px;border:1.5px solid}
 .mini .c.empty{background:#fff;border-color:var(--empty-line)}
 .mini .c.occ{background:var(--navy);border-color:var(--navy)}
 .mini .c.res{background:var(--res);border-color:var(--res)}
 .mini .c.target{background:var(--hit);border-color:var(--ink);animation:pulse 1.4s ease-in-out infinite}
-.mini .c.gap{margin-left:10px}
-.mini .lv{font-size:12px;color:var(--muted);margin-top:4px}
+.mini .r.floor .b{border-bottom:2px solid var(--btn-line);padding-bottom:2px}
+.mini .cap{font-size:12px;color:var(--muted);margin-top:4px;text-align:center}
 @keyframes pulse{50%{box-shadow:0 0 0 4px rgba(245,180,10,.35)}}
 @media (prefers-reduced-motion:reduce){.mini .c.target{animation:none}.slot{transition:none}.slot:hover{transform:none}}
 .m-btn{height:48px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
 .m-btn:hover{background:var(--accent-hover)}
-.m-link{border:0;background:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;padding:2px 0}
 .m-row-item{background:#fff;border-radius:14px;border:1px solid var(--line);padding:14px 16px;display:flex;gap:12px;align-items:center;cursor:pointer;text-align:left;color:var(--ink);width:100%}
 .m-row-item:hover{border-color:var(--navy)}
 .m-row-item .nm{flex:1;font-size:15px;min-width:0}
 .m-row-item .nm small{display:block;font-size:12px;color:var(--muted)}
 .m-row-item .qty{font-size:15px;font-weight:600;white-space:nowrap}
+.m-more{border:1px dashed var(--btn-line);background:transparent;border-radius:14px;padding:12px;font-size:15px;font-weight:600;color:var(--accent);cursor:pointer}
 .m-empty{background:#fff;border-radius:14px;border:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:12px;font-size:15px;color:var(--ink-2)}
-.m-nav{background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 4px calc(18px + env(safe-area-inset-bottom,0px))}
+.m-nav{background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 4px calc(18px + env(safe-area-inset-bottom,0px))}
 .m-nav button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;border:0;background:none;color:var(--muted);font-size:12px;cursor:pointer}
 .m-nav button[aria-current="page"]{color:var(--accent);font-weight:600}
 
@@ -246,7 +255,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <label for="slot-search">ค้นหาว่าสินค้าอยู่ตรงไหน</label>
         <div class="searchbox">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4A5A6A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-          <input id="slot-search" type="search" autocomplete="off" placeholder="ชื่อสินค้า, SKU หรือชื่อลูกค้า">
+          <input id="slot-search" type="search" autocomplete="off" placeholder="ชื่อสินค้า, SKU, ชื่อลูกค้า หรือรหัสตำแหน่ง เช่น AC-05">
           <button type="button" class="iconbtn" id="clear-search" data-act="clear" aria-label="ล้างคำค้นหา" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14202B" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
         </div>
         <div class="chips" id="chips"></div>
@@ -257,9 +266,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <div class="stats" id="stats"></div>
       </div>
 
-      <div class="card mapcard" id="mapcard">
-        <div class="grid" id="grid"></div>
-      </div>
+      <div class="card mapcard" id="mapcard"></div>
     </main>
 
     <aside class="side">
@@ -277,13 +284,10 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <div class="m-head">
           <h1>ค้นหาสินค้า</h1>
           <label for="m-search" class="sr-only">ค้นหาสินค้า</label>
-          <div class="m-row">
-            <div class="m-search">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A5A6A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
-              <input id="m-search" type="search" autocomplete="off" placeholder="ชื่อสินค้า, SKU, ลูกค้า">
-              <button type="button" class="iconbtn" id="m-clear" data-act="m-clear" aria-label="ล้างคำค้นหา" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#14202B" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
-            </div>
-            <button type="button" class="m-scan" data-act="m-scan" aria-label="สแกนบาร์โค้ด"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14202B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"></path></svg></button>
+          <div class="m-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A5A6A" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+            <input id="m-search" type="search" autocomplete="off" placeholder="ชื่อสินค้า, SKU, ลูกค้า, ตำแหน่ง">
+            <button type="button" class="iconbtn" id="m-clear" data-act="m-clear" aria-label="ล้างคำค้นหา" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#14202B" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
           </div>
           <div class="m-sub" id="m-sub"></div>
         </div>
@@ -291,7 +295,6 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
         <nav class="m-nav" aria-label="เมนูล่าง">
           <button type="button" data-act="view" data-view="map"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>ผังคลัง</button>
           <button type="button" aria-current="page"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>ค้นหา</button>
-          <button type="button" data-act="m-scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"></path></svg>สแกน</button>
           <button type="button" data-act="soon" data-label="รับ / เบิก (มือถือ)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"></path></svg>รับ / เบิก</button>
         </nav>
       </div>
@@ -299,12 +302,11 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 
     <div class="notes">
       <h2>มุมมองพนักงานหน้าคลัง</h2>
-      <p>พนักงานถือมือถือเดินหาของ พิมพ์หรือสแกนรหัสสินค้า แล้วระบบบอกช่องที่ต้องไป พร้อมผังย่อให้เห็นตำแหน่งจริง</p>
+      <p>พนักงานถือมือถือเดินหาของ พิมพ์ชื่อสินค้าหรือรหัสตำแหน่ง แล้วระบบบอกว่าต้องไปแร็คไหน Bay ไหน ชั้นไหน พร้อมผังย่อของแร็คนั้น</p>
       <ol>
-        <li>พิมพ์ชื่อสินค้า SKU หรือชื่อลูกค้าในช่องค้นหา</li>
-        <li>กดปุ่มสแกนสีเหลือง เพื่อจำลองการสแกนบาร์โค้ดสินค้า</li>
-        <li>กดรายการอื่นด้านล่าง เพื่อดูช่องถัดไป</li>
-        <li>กด "ดูบนผังคลัง" เพื่อเปิดช่องนั้นในหน้าแอดมิน</li>
+        <li>พิมพ์ชื่อสินค้า SKU ชื่อลูกค้า หรือรหัสตำแหน่ง เช่น AC-05</li>
+        <li>กดรายการอื่นด้านล่าง เพื่อดูตำแหน่งถัดไป</li>
+        <li>กด "ดูบนผังคลัง" เพื่อเปิดตำแหน่งนั้นในหน้าแอดมิน</li>
       </ol>
       <p class="hint">เปิดลิงก์นี้บนมือถือ จะแสดงเต็มจอเหมือนแอปจริง</p>
     </div>
@@ -318,7 +320,13 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 (function () {
   'use strict';
 
-  // ---------- mock data (same generator as the design file, so slot codes match) ----------
+  // ---------- layout from the client's "location warehouse.xlsx" ----------
+  // Zone A · racks AA–AF · bays 01–15 · 2 pallet positions per bay · levels 01–06
+  // Location code: <rack>-<bay>-<pallet><level>, e.g. AA-01-0106 = rack AA, bay 01, pallet 01, level 06
+  var ZONE = 'A';
+  var RACKS = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF'];
+  var BAYS = 15, PALLETS = 2, LEVELS = 6;
+
   function hash(s) {
     var x = 2166136261;
     for (var i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); }
@@ -326,10 +334,12 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     return x >>> 0;
   }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function codeOf(rack, bay, pallet, level) { return rack + '-' + pad(bay) + '-' + pad(pallet) + pad(level); }
   var TH_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
   function thDate(d) { return d.getDate() + ' ' + TH_MONTHS[d.getMonth()] + ' ' + (d.getFullYear() + 543); }
   function nowStamp() { var d = new Date(); return thDate(d) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 
+  // ---------- mock stock (customers and products are examples) ----------
   var CUSTOMERS = [
     { name: 'ร้านมะลิ คอสเมติก', phone: '08x-xxx-1201', prods: [['ครีมกันแดด SPF50', 'MLI-SUN50'], ['เซรั่มวิตามินซี', 'MLI-VC30'], ['สบู่สมุนไพร', 'MLI-SOAP']] },
     { name: 'บจก. ทองดี ซัพพลาย', phone: '02-xxx-4410', prods: [['น็อตสแตนเลส M8', 'TD-NUT-M8'], ['ท่อ PVC 1 นิ้ว', 'TD-PVC-1'], ['กาวยาแนว', 'TD-GROUT']] },
@@ -339,24 +349,18 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     { name: 'Bangkok Gadget', phone: '09x-xxx-5561', prods: [['หูฟังไร้สาย', 'BG-EARBUD'], ['สายชาร์จ USB-C', 'BG-USBC'], ['พาวเวอร์แบงก์', 'BG-PB10K']] }
   ];
   var STAFF = ['สมชาย', 'น้องเมย์', 'พี่ต้น'];
-  var WHS = [{ id: 'W1', name: 'โกดัง 1', occ: 0.5 }, { id: 'W2', name: 'โกดัง 2', occ: 0.36 }];
-  var ROWS = ['A', 'B', 'C', 'D', 'E', 'F'];
-  var COLS = 14, LEVELS = 3;
 
   var all = [], byCode = {};
-  WHS.forEach(function (w) {
-    for (var lv = 1; lv <= LEVELS; lv++) {
-      ROWS.forEach(function (r) {
-        for (var c = 1; c <= COLS; c++) {
-          var code = w.id + '-' + r + pad(c) + '-' + lv;
+  RACKS.forEach(function (rack) {
+    for (var bay = 1; bay <= BAYS; bay++) {
+      for (var p = 1; p <= PALLETS; p++) {
+        for (var lv = 1; lv <= LEVELS; lv++) {
+          var code = codeOf(rack, bay, p, lv);
           var h = hash(code);
-          var p = (h % 1000) / 1000;
-          var status = p < w.occ ? 'occ' : (p < w.occ + 0.1 ? 'res' : 'empty');
+          var r = (h % 1000) / 1000;
+          var status = r < 0.62 ? 'occ' : (r < 0.7 ? 'res' : 'empty');
           var cu = CUSTOMERS[(h >>> 10) % CUSTOMERS.length];
-          var s = {
-            code: code, wh: w.id, whName: w.name, row: r, col: c, level: lv, status: status,
-            cust: null, items: [], history: []
-          };
+          var s = { code: code, rack: rack, bay: bay, pallet: p, level: lv, status: status, cust: null, items: [], history: [] };
           var by = STAFF[(h >>> 3) % 3];
           if (status === 'occ') {
             var i0 = (h >>> 14) % 3, n = 1 + ((h >>> 17) % 2);
@@ -370,33 +374,41 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
             s.history.push({ t: 'รับสินค้าเข้า', d: s.dateIn + ' · โดย ' + by + ' · ' + s.items.map(function (it) { return it.name + ' ' + it.qty + ' ' + it.unit; }).join(', ') });
           } else if (status === 'res') {
             s.cust = cu;
-            s.eta = (14 + ((h >>> 7) % 14)) + ' ต.ค. 2569';
-            s.history.push({ t: 'จองช่องให้ ' + cu.name, d: 'โดย ' + by + ' · คาดว่าสินค้าเข้า ' + s.eta });
+            s.eta = (20 + ((h >>> 7) % 10)) + ' ต.ค. 2569';
+            s.history.push({ t: 'จองตำแหน่งให้ ' + cu.name, d: 'โดย ' + by + ' · คาดว่าสินค้าเข้า ' + s.eta });
           }
           all.push(s); byCode[code] = s;
         }
-      });
+      }
     }
   });
-  function slotWhere(s) { return s.whName + ' · แถว ' + s.row + ' · ช่อง ' + pad(s.col) + ' · ชั้น ' + s.level; }
+  function slotWhere(s) { return 'Zone ' + ZONE + ' · แร็ค ' + s.rack + ' · Bay ' + pad(s.bay) + ' · พาเลท ' + pad(s.pallet) + ' · ชั้น ' + pad(s.level); }
   function qtyText(it) { return it.qty + ' ' + it.unit; }
-  var firstOcc = all.filter(function (s) { return s.wh === 'W1' && s.level === 1 && s.row === 'C' && s.status === 'occ'; })[0];
+  var firstOcc = all.filter(function (s) { return s.rack === 'AC' && s.bay === 5 && s.status === 'occ'; })[0];
 
   // ---------- state ----------
-  var st = { view: 'map', wh: 'W1', level: 1, sel: firstOcc ? firstOcc.code : null, q: '', showAll: false, mq: 'ครีมกันแดด', mSel: null };
+  var st = { view: 'map', rack: 'all', sel: firstOcc ? firstOcc.code : null, q: '', showAll: false, mq: 'ครีมกันแดด', mSel: null, mShow: 12 };
 
   // ---------- helpers ----------
   function $(id) { return document.getElementById(id); }
   function esc(v) { return String(v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function norm(q) { return (q || '').trim().toLowerCase(); }
+  var CODE_Q = /^a[a-f](?:-|\d|$)/;
   function itemMatches(it, q) { return it.name.toLowerCase().indexOf(q) >= 0 || it.sku.toLowerCase().indexOf(q) >= 0; }
   function isHit(s, q) {
-    if (!q || s.status === 'empty') return false;
+    if (!q) return false;
+    if (CODE_Q.test(q)) return s.code.toLowerCase().replace(/-/g, '').indexOf(q.replace(/-/g, '')) === 0;
+    if (s.status === 'empty') return false;
     if (s.cust && s.cust.name.toLowerCase().indexOf(q) >= 0) return true;
     return s.items.some(function (it) { return itemMatches(it, q); });
   }
   function matchedItem(s, q) { return s.items.filter(function (it) { return itemMatches(it, q); })[0] || s.items[0]; }
   var STATUS_TEXT = { occ: 'มีสินค้า', res: 'จองแล้ว', empty: 'ว่าง' };
+  function countStats(list) {
+    var occ = 0, res = 0;
+    list.forEach(function (s) { if (s.status === 'occ') occ++; else if (s.status === 'res') res++; });
+    return { occ: occ, res: res, empty: list.length - occ - res, total: list.length };
+  }
 
   var toastTimer;
   function toast(msg) {
@@ -404,12 +416,40 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
   }
 
-  // ---------- admin map rendering ----------
-  var CHIPS = ['ครีมกันแดด', 'ShopKit', 'ข้าวหอมมะลิ', 'BG-USBC'];
+  // ---------- admin map ----------
+  var CHIPS = ['ครีมกันแดด', 'ShopKit', 'ข้าวหอมมะลิ', 'BG-USBC', 'AC-05'];
   function renderChips() {
     $('chips').innerHTML = 'ลองค้นหา:' + CHIPS.map(function (c) {
       return '<button type="button" class="chip" data-act="chip" data-q="' + esc(c) + '">' + esc(c) + '</button>';
     }).join('');
+  }
+
+  function slotBtn(s, q, hasQ) {
+    var hit = isHit(s, q);
+    var cls = 'slot ' + (hit ? 'is-hit' : 'is-' + s.status) + (hasQ && !hit ? ' is-dim' : '') + (s.code === st.sel ? ' is-sel' : '');
+    var label = s.code + ' · ' + STATUS_TEXT[s.status] + (s.cust ? ' · ' + s.cust.name : '');
+    return '<button type="button" class="' + cls + '" data-act="slot" data-code="' + s.code + '" aria-label="' + esc(label) + '" title="' + esc(label) + '" aria-pressed="' + (s.code === st.sel) + '"></button>';
+  }
+
+  function rackBlock(rack, q, hasQ, hits) {
+    var list = all.filter(function (s) { return s.rack === rack; });
+    var c = countStats(list);
+    var nHit = hits.filter(function (s) { return s.rack === rack; }).length;
+    var h = '<section class="rack" aria-label="แร็ค ' + rack + '"><div class="rack-head"><span class="rack-sign">' + rack + '</span>' +
+      '<span class="rack-stat">' + (hasQ ? 'พบ ' + nHit + ' ตำแหน่ง · ' : '') + 'มีสินค้า ' + c.occ + ' · จอง ' + c.res + ' · ว่าง ' + c.empty + '</span></div>';
+    h += '<div class="rrow"><div class="lvl"></div>';
+    for (var b = 1; b <= BAYS; b++) h += '<div class="bay-h">' + pad(b) + '</div>';
+    h += '</div>';
+    for (var lv = LEVELS; lv >= 1; lv--) {
+      h += '<div class="rrow' + (lv === 1 ? ' floor' : '') + '"><div class="lvl">' + pad(lv) + '</div>';
+      for (var bay = 1; bay <= BAYS; bay++) {
+        h += '<div class="bay">';
+        for (var p = 1; p <= PALLETS; p++) h += slotBtn(byCode[codeOf(rack, bay, p, lv)], q, hasQ);
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    return h + '</section>';
   }
 
   function renderMap() {
@@ -417,61 +457,46 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     var hits = all.filter(function (s) { return isHit(s, q); });
     $('clear-search').hidden = !hasQ;
 
-    // tabs
-    var html = WHS.map(function (w) {
-      var n = hits.filter(function (s) { return s.wh === w.id; }).length;
-      return '<button type="button" class="tab" data-act="wh" data-wh="' + w.id + '" aria-pressed="' + (w.id === st.wh) + '">' + w.name + (hasQ ? ' (' + n + ')' : '') + '</button>';
-    }).join('') + '<div class="sep" aria-hidden="true"></div>';
-    for (var lv = 1; lv <= LEVELS; lv++) {
-      var n = hits.filter(function (s) { return s.wh === st.wh && s.level === lv; }).length;
-      html += '<button type="button" class="tab" data-act="lv" data-lv="' + lv + '" aria-pressed="' + (lv === st.level) + '">ชั้น ' + lv + (hasQ ? ' (' + n + ')' : '') + '</button>';
-    }
+    // rack filter tabs
+    var html = '<button type="button" class="tab" data-act="rack" data-rack="all" aria-pressed="' + (st.rack === 'all') + '">ทุกแร็ค' + (hasQ ? ' (' + hits.length + ')' : '') + '</button>';
+    RACKS.forEach(function (r) {
+      var n = hits.filter(function (s) { return s.rack === r; }).length;
+      html += '<button type="button" class="tab mono" data-act="rack" data-rack="' + r + '" aria-pressed="' + (st.rack === r) + '">' + r + (hasQ ? ' (' + n + ')' : '') + '</button>';
+    });
     $('tabs').innerHTML = html;
 
-    // stats
-    var view = all.filter(function (s) { return s.wh === st.wh && s.level === st.level; });
-    var occ = view.filter(function (s) { return s.status === 'occ'; }).length;
-    var res = view.filter(function (s) { return s.status === 'res'; }).length;
-    $('stats').textContent = 'ใช้แล้ว ' + Math.round((occ + res) * 100 / view.length) + '% · มีสินค้า ' + occ + ' · จอง ' + res + ' · ว่าง ' + (view.length - occ - res) + ' จาก ' + view.length + ' ช่อง';
+    var racks = st.rack === 'all' ? RACKS : [st.rack];
+    var view = all.filter(function (s) { return racks.indexOf(s.rack) >= 0; });
+    var c = countStats(view);
+    $('stats').textContent = 'ใช้แล้ว ' + Math.round((c.occ + c.res) * 100 / c.total) + '% · มีสินค้า ' + c.occ + ' · จอง ' + c.res + ' · ว่าง ' + c.empty + ' จาก ' + c.total.toLocaleString() + ' ตำแหน่ง';
 
-    // grid
-    var whName = WHS.filter(function (w) { return w.id === st.wh; })[0].name;
-    var g = '<div class="dock"><div class="bar"></div><div class="txt">ประตูรับ–ส่งสินค้า · ' + whName + ' · ชั้นวางชั้น ' + st.level + '</div></div>';
-    var head = '<div class="grow colhead"><div class="rl"></div>';
-    for (var c = 1; c <= COLS; c++) { head += '<div>' + pad(c) + '</div>'; if (c === 7) head += '<div class="aisle"></div>'; }
-    g += head + '<div class="rl"></div></div>';
-    ROWS.forEach(function (r) {
-      var row = '<div class="grow"><div class="rl">' + r + '</div>';
-      for (var c = 1; c <= COLS; c++) {
-        var s = byCode[st.wh + '-' + r + pad(c) + '-' + st.level];
-        var hit = isHit(s, q);
-        var cls = 'slot ' + (hit ? 'is-hit' : 'is-' + s.status) + (hasQ && !hit ? ' is-dim' : '') + (s.code === st.sel ? ' is-sel' : '');
-        var label = r + pad(c) + ' ' + STATUS_TEXT[s.status] + (s.cust ? ' · ' + s.cust.name : '');
-        row += '<button type="button" class="' + cls + '" data-act="slot" data-code="' + s.code + '" aria-label="' + esc(label) + '" title="' + esc(label) + '" aria-pressed="' + (s.code === st.sel) + '">' + pad(c) + '</button>';
-        if (c === 7) row += '<div class="aisle"></div>';
-      }
-      g += row + '<div class="rl">' + r + '</div></div>';
-    });
+    var g = '<div class="zone-title"><b>Zone ' + ZONE + (st.rack === 'all' ? ' · แร็ค AA–AF' : ' · แร็ค ' + st.rack) + '</b>' +
+      '<span>' + BAYS + ' Bay × ' + PALLETS + ' พาเลท × ' + LEVELS + ' ชั้น ต่อแร็ค · ชั้น 01 อยู่ล่างสุด</span></div>';
+    g += '<div class="zone"><div class="band">OFFICE</div><div class="racks">' +
+      racks.map(function (r) { return rackBlock(r, q, hasQ, hits); }).join('') +
+      '</div><div class="band">WALKWAY</div></div>';
     g += '<div class="legend">' +
-      '<div><span style="background:#fff;border:2px solid #9AA8B6"></span>ว่าง</div>' +
+      '<div><span style="background:#fff;border:1.5px solid #9AA8B6"></span>ว่าง</div>' +
       '<div><span style="background:#A9BCCF"></span>จองแล้ว</div>' +
       '<div><span style="background:#22364A"></span>มีสินค้า</div>' +
       '<div><span style="background:#F5B40A"></span>ผลค้นหา</div>' +
-      '<div><span style="background:#fff;box-shadow:0 0 0 2px #fff,0 0 0 4px #1F4FD1"></span>ช่องที่เลือก</div></div>';
-    $('grid').innerHTML = g;
+      '<div><span style="background:#fff;box-shadow:0 0 0 2px #fff,0 0 0 4px #1F4FD1"></span>ตำแหน่งที่เลือก</div>' +
+      '<div class="k">1 ช่อง = 1 ตำแหน่งพาเลท</div></div>';
+    $('mapcard').innerHTML = g;
 
     // results
     var rc = $('results');
     rc.hidden = !hasQ;
     if (hasQ) {
       var limit = st.showAll ? hits.length : 8;
-      var r = '<h2>' + (hits.length === 0 ? 'ไม่พบสินค้าที่ตรงกับคำค้นหา' : 'พบใน ' + hits.length + ' ช่อง' + (hits.length > limit ? ' (แสดง ' + limit + ' รายการแรก)' : '')) + '</h2>';
+      var r = '<h2>' + (hits.length === 0 ? 'ไม่พบสินค้าหรือตำแหน่งที่ตรงกับคำค้นหา' : 'พบ ' + hits.length + ' ตำแหน่ง' + (hits.length > limit ? ' (แสดง ' + limit + ' รายการแรก)' : '')) + '</h2>';
       r += hits.slice(0, limit).map(function (s) {
-        var m = matchedItem(s, q);
-        var t1 = s.status === 'res' ? 'จองไว้ · คาดว่าเข้า ' + s.eta : m.name + ' · ' + qtyText(m);
+        var m = s.status === 'occ' ? matchedItem(s, q) : null;
+        var t1 = s.status === 'occ' ? m.name + ' · ' + qtyText(m) : s.status === 'res' ? 'จองไว้ · คาดว่าเข้า ' + s.eta : 'ตำแหน่งว่าง';
+        var t2 = (s.cust ? s.cust.name + ' · ' : '') + 'แร็ค ' + s.rack + ' Bay ' + pad(s.bay) + ' ชั้น ' + pad(s.level);
         return '<button type="button" class="result" data-act="result" data-code="' + s.code + '">' +
           '<span class="code-chip">' + s.code + '</span><span class="t"><span class="t1">' + esc(t1) + '</span>' +
-          '<span class="t2">' + esc(s.cust.name) + ' · ' + s.whName + ' ชั้น ' + s.level + '</span></span></button>';
+          '<span class="t2">' + esc(t2) + '</span></span></button>';
       }).join('');
       if (hits.length > limit) r += '<button type="button" class="linkbtn" data-act="more">แสดงทั้งหมด ' + hits.length + ' รายการ</button>';
       rc.innerHTML = r;
@@ -484,33 +509,35 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     var s = st.sel ? byCode[st.sel] : null;
     var el = $('detail');
     if (!s) { el.innerHTML = '<div style="font-size:16px;color:#34424F">กดที่ช่องบนผังเพื่อดูว่ามีสินค้าอะไร ของลูกค้าคนไหน</div>'; return; }
-    var h = '<div class="dhead"><div style="display:flex;flex-direction:column;gap:4px"><div class="k">ช่องเก็บ</div><div class="code">' + s.code + '</div><div class="w">' + slotWhere(s) + '</div></div>' +
+    var h = '<div class="dhead"><div style="display:flex;flex-direction:column;gap:4px"><div class="k">ตำแหน่งเก็บ</div><div class="code">' + s.code + '</div></div>' +
       '<span class="pill ' + s.status + '">' + STATUS_TEXT[s.status] + '</span></div>';
+    h += '<div class="codeparts"><div><b>' + s.rack + '</b><span>แร็ค</span></div><div><b>' + pad(s.bay) + '</b><span>Bay</span></div><div><b>' + pad(s.pallet) + '</b><span>พาเลท</span></div><div><b>' + pad(s.level) + '</b><span>ชั้น</span></div></div>';
     if (s.status === 'occ') {
       h += '<div class="box"><div class="k">ลูกค้าเจ้าของสินค้า</div><div class="v">' + esc(s.cust.name) + '</div><div class="s">' + s.cust.phone + '</div></div>';
-      h += '<div class="items"><div class="k">สินค้าในช่อง</div>' + s.items.map(function (it) {
+      h += '<div class="items"><div class="k">สินค้าบนพาเลทนี้</div>' + s.items.map(function (it) {
         return '<div class="item"><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><div class="n">' + esc(it.name) + '</div><div class="sku">' + esc(it.sku) + '</div></div><div class="q">' + qtyText(it) + '</div></div>';
       }).join('') + '</div>';
       h += '<div class="meta">รับเข้าเมื่อ ' + s.dateIn + ' · โดย ' + esc(s.by) + '</div>';
-      h += '<div class="actions"><button type="button" class="btn primary" data-act="withdraw">เบิกออก</button><button type="button" class="btn" data-act="move">ย้ายช่อง</button><button type="button" class="btn" data-act="history">ประวัติ</button></div>';
+      h += '<div class="actions"><button type="button" class="btn primary" data-act="withdraw">เบิกออก</button><button type="button" class="btn" data-act="move">ย้ายตำแหน่ง</button><button type="button" class="btn" data-act="history">ประวัติ</button></div>';
     } else if (s.status === 'res') {
       h += '<div class="box"><div class="k">จองไว้ให้</div><div class="v">' + esc(s.cust.name) + '</div><div class="s">คาดว่าสินค้าเข้า ' + s.eta + '</div></div>';
-      h += '<div class="actions"><button type="button" class="btn primary" data-act="receive" style="flex-basis:140px">รับสินค้าเข้าช่องนี้</button><button type="button" class="btn" data-act="cancel-res" style="flex-basis:140px">ยกเลิกการจอง</button></div>';
-      h += '<button type="button" class="linkbtn" data-act="history">ดูประวัติช่องนี้</button>';
+      h += '<div class="actions"><button type="button" class="btn primary" data-act="receive" style="flex-basis:140px">รับสินค้าเข้าตำแหน่งนี้</button><button type="button" class="btn" data-act="cancel-res" style="flex-basis:140px">ยกเลิกการจอง</button></div>';
+      h += '<button type="button" class="linkbtn" data-act="history">ดูประวัติตำแหน่งนี้</button>';
     } else {
-      h += '<div class="box" style="font-size:16px;color:#34424F">ช่องนี้ว่าง พร้อมรับสินค้า</div>';
-      h += '<div class="actions"><button type="button" class="btn primary" data-act="receive" style="flex-basis:140px">รับสินค้าเข้า</button><button type="button" class="btn" data-act="reserve" style="flex-basis:140px">จองช่องนี้ให้ลูกค้า</button></div>';
-      if (s.history.length) h += '<button type="button" class="linkbtn" data-act="history">ดูประวัติช่องนี้</button>';
+      h += '<div class="box" style="font-size:16px;color:#34424F">ตำแหน่งนี้ว่าง พร้อมรับสินค้า</div>';
+      h += '<div class="actions"><button type="button" class="btn primary" data-act="receive" style="flex-basis:140px">รับสินค้าเข้า</button><button type="button" class="btn" data-act="reserve" style="flex-basis:140px">จองให้ลูกค้า</button></div>';
+      if (s.history.length) h += '<button type="button" class="linkbtn" data-act="history">ดูประวัติตำแหน่งนี้</button>';
     }
     el.innerHTML = h;
   }
 
   function selectSlot(code, opts) {
     var s = byCode[code];
-    st.sel = code; st.wh = s.wh; st.level = s.level;
+    st.sel = code;
+    if (st.rack !== 'all' && st.rack !== s.rack) st.rack = s.rack;
     renderMap();
     var btn = document.querySelector('.slot[data-code="' + code + '"]');
-    if (btn && opts && opts.scroll) btn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    if (btn && opts && opts.scroll) btn.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
     if (opts && opts.showDetail && window.innerWidth < 1140) $('detail').scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
@@ -530,21 +557,21 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
 
   function modalFor(act) {
     var s = byCode[st.sel];
-    var head = function (t) { return '<h2>' + t + '</h2><div class="sub mono">' + s.code + ' · ' + slotWhere(s) + '</div>'; };
+    var head = function (t) { return '<h2>' + t + '</h2><div class="sub"><span class="mono">' + s.code + '</span> · ' + slotWhere(s) + '</div>'; };
     var foot = function (label) { return '<div class="actions"><button type="submit" class="btn primary">' + label + '</button><button type="button" class="btn" data-act="modal-close">ยกเลิก</button></div>'; };
     if (act === 'reserve') {
       var d = new Date(); d.setDate(d.getDate() + 3);
-      openModal('<form data-form="reserve" style="display:flex;flex-direction:column;gap:16px">' + head('จองช่องให้ลูกค้า') +
+      openModal('<form data-form="reserve" style="display:flex;flex-direction:column;gap:16px">' + head('จองตำแหน่งให้ลูกค้า') +
         '<div class="field"><label for="f-cust">ลูกค้า</label><select id="f-cust" name="cust">' + custOptions() + '</select></div>' +
         '<div class="field"><label for="f-eta">คาดว่าสินค้าเข้า</label><input id="f-eta" name="eta" type="date" required value="' + d.toISOString().slice(0, 10) + '"></div>' +
         foot('ยืนยันการจอง') + '</form>');
     } else if (act === 'receive') {
       var ci = s.cust ? CUSTOMERS.indexOf(s.cust) : 0;
-      openModal('<form data-form="receive" style="display:flex;flex-direction:column;gap:16px">' + head('รับสินค้าเข้าช่อง') +
+      openModal('<form data-form="receive" style="display:flex;flex-direction:column;gap:16px">' + head('รับสินค้าเข้าตำแหน่ง') +
         '<div class="field"><label for="f-cust">ลูกค้า</label><select id="f-cust" name="cust" data-act-change="cust">' + custOptions(s.cust && s.cust.name) + '</select></div>' +
         '<div class="field"><label for="f-prod">สินค้า</label><select id="f-prod" name="prod">' + prodOptions(ci) + '</select></div>' +
         '<div class="field-row"><div class="field"><label for="f-qty">จำนวน</label><input id="f-qty" name="qty" type="number" min="1" value="10" required inputmode="numeric"></div>' +
-        '<div class="field"><label for="f-unit">หน่วย</label><select id="f-unit" name="unit"><option>ลัง</option><option>พาเลท</option><option>ชิ้น</option><option>กระสอบ</option></select></div></div>' +
+        '<div class="field"><label for="f-unit">หน่วย</label><select id="f-unit" name="unit"><option>ลัง</option><option>ชิ้น</option><option>กระสอบ</option></select></div></div>' +
         foot('บันทึกรับเข้า') + '</form>');
     } else if (act === 'withdraw') {
       openModal('<form data-form="withdraw" style="display:flex;flex-direction:column;gap:16px">' + head('เบิกสินค้าออก') +
@@ -552,19 +579,23 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
           return '<div class="field"><label for="f-w' + i + '">' + esc(it.name) + ' <span class="mono" style="font-weight:500;color:#4A5A6A">· มี ' + qtyText(it) + '</span></label>' +
             '<input id="f-w' + i + '" name="w' + i + '" type="number" min="0" max="' + it.qty + '" value="' + it.qty + '" inputmode="numeric"></div>';
         }).join('') +
-        '<div class="sub" style="margin-top:0">ถ้าเบิกออกหมดทุกรายการ ช่องนี้จะกลับเป็น "ว่าง" ทันที</div>' +
+        '<div class="sub" style="margin-top:0">ถ้าเบิกออกหมดทุกรายการ ตำแหน่งนี้จะกลับเป็น "ว่าง" ทันที</div>' +
         foot('ยืนยันเบิกออก') + '</form>');
     } else if (act === 'move') {
-      var empties = all.filter(function (x) { return x.status === 'empty' && x.wh === s.wh; });
-      openModal('<form data-form="move" style="display:flex;flex-direction:column;gap:16px">' + head('ย้ายสินค้าไปช่องอื่น') +
-        '<div class="field"><label for="f-to">ย้ายไปช่องว่าง</label><select id="f-to" name="to">' + empties.map(function (x) { return '<option value="' + x.code + '">' + x.code + ' · แถว ' + x.row + ' ช่อง ' + pad(x.col) + ' ชั้น ' + x.level + '</option>'; }).join('') + '</select></div>' +
-        foot('ย้ายช่อง') + '</form>');
+      var opts = RACKS.map(function (r) {
+        var em = all.filter(function (x) { return x.status === 'empty' && x.rack === r; });
+        if (!em.length) return '';
+        return '<optgroup label="แร็ค ' + r + '">' + em.map(function (x) { return '<option value="' + x.code + '">' + x.code + ' · Bay ' + pad(x.bay) + ' ชั้น ' + pad(x.level) + '</option>'; }).join('') + '</optgroup>';
+      }).join('');
+      openModal('<form data-form="move" style="display:flex;flex-direction:column;gap:16px">' + head('ย้ายพาเลทไปตำแหน่งอื่น') +
+        '<div class="field"><label for="f-to">ย้ายไปตำแหน่งว่าง</label><select id="f-to" name="to">' + opts + '</select></div>' +
+        foot('ย้ายตำแหน่ง') + '</form>');
     } else if (act === 'cancel-res') {
       openModal('<form data-form="cancel-res" style="display:flex;flex-direction:column;gap:16px">' + head('ยกเลิกการจอง?') +
-        '<div class="box"><div class="k">จองไว้ให้</div><div class="v">' + esc(s.cust.name) + '</div><div class="s">ช่องจะกลับเป็น "ว่าง" และรับลูกค้ารายอื่นได้</div></div>' +
+        '<div class="box"><div class="k">จองไว้ให้</div><div class="v">' + esc(s.cust.name) + '</div><div class="s">ตำแหน่งจะกลับเป็น "ว่าง" และรับลูกค้ารายอื่นได้</div></div>' +
         '<div class="actions"><button type="submit" class="btn primary">ยืนยันยกเลิกการจอง</button><button type="button" class="btn" data-act="modal-close">ไม่ยกเลิก</button></div></form>');
     } else if (act === 'history') {
-      openModal(head('ประวัติช่อง') + '<div class="hist">' + s.history.slice().reverse().map(function (h) {
+      openModal(head('ประวัติตำแหน่ง') + '<div class="hist">' + s.history.slice().reverse().map(function (h) {
         return '<div><b>' + esc(h.t) + '</b><span>' + esc(h.d) + '</span></div>';
       }).join('') + '</div><div class="actions"><button type="button" class="btn" data-act="modal-close">ปิด</button></div>');
     }
@@ -575,8 +606,8 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     if (kind === 'reserve') {
       var eta = new Date(f.eta.value + 'T00:00:00');
       s.status = 'res'; s.cust = CUSTOMERS[+f.cust.value]; s.eta = thDate(eta); s.items = [];
-      s.history.push({ t: 'จองช่องให้ ' + s.cust.name, d: nowStamp() + ' · โดย แอดมิน · คาดว่าสินค้าเข้า ' + s.eta });
-      toast('จองช่อง ' + s.code + ' ให้ ' + s.cust.name + ' แล้ว');
+      s.history.push({ t: 'จองตำแหน่งให้ ' + s.cust.name, d: nowStamp() + ' · โดย แอดมิน · คาดว่าสินค้าเข้า ' + s.eta });
+      toast('จองตำแหน่ง ' + s.code + ' ให้ ' + s.cust.name + ' แล้ว');
     } else if (kind === 'receive') {
       var cu = CUSTOMERS[+f.cust.value], pr = cu.prods[+f.prod.value], qty = Math.max(1, parseInt(f.qty.value, 10) || 1);
       if (s.status !== 'occ' || s.cust !== cu) s.items = [];
@@ -584,7 +615,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
       if (ex) ex.qty += qty; else s.items.push({ name: pr[0], sku: pr[1], qty: qty, unit: f.unit.value });
       s.status = 'occ'; s.cust = cu; s.dateIn = thDate(new Date()); s.by = 'แอดมิน';
       s.history.push({ t: 'รับสินค้าเข้า', d: nowStamp() + ' · โดย แอดมิน · ' + pr[0] + ' ' + qty + ' ' + f.unit.value });
-      toast('รับ ' + pr[0] + ' ' + qty + ' ' + f.unit.value + ' เข้าช่อง ' + s.code + ' แล้ว');
+      toast('รับ ' + pr[0] + ' ' + qty + ' ' + f.unit.value + ' เข้า ' + s.code + ' แล้ว');
     } else if (kind === 'withdraw') {
       var out = [];
       s.items.forEach(function (it, i) {
@@ -594,7 +625,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
       if (!out.length) { toast('ใส่จำนวนที่ต้องการเบิกอย่างน้อย 1 รายการ'); return; }
       s.items = s.items.filter(function (it) { return it.qty > 0; });
       s.history.push({ t: 'เบิกสินค้าออก', d: nowStamp() + ' · โดย แอดมิน · ' + out.join(', ') });
-      if (!s.items.length) { s.status = 'empty'; s.cust = null; toast('เบิกออกหมดแล้ว ช่อง ' + s.code + ' ว่างแล้ว'); }
+      if (!s.items.length) { s.status = 'empty'; s.cust = null; toast('เบิกออกหมดแล้ว ' + s.code + ' ว่างแล้ว'); }
       else toast('เบิกออกแล้ว: ' + out.join(', '));
     } else if (kind === 'move') {
       var to = byCode[f.to.value];
@@ -602,30 +633,36 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
       to.history.push({ t: 'ย้ายเข้าจาก ' + s.code, d: nowStamp() + ' · โดย แอดมิน' });
       s.history.push({ t: 'ย้ายออกไป ' + to.code, d: nowStamp() + ' · โดย แอดมิน' });
       s.status = 'empty'; s.cust = null; s.items = [];
-      toast('ย้ายสินค้าจาก ' + s.code + ' ไป ' + to.code + ' แล้ว');
+      toast('ย้ายพาเลทจาก ' + s.code + ' ไป ' + to.code + ' แล้ว');
       closeModal(); selectSlot(to.code, { scroll: true }); renderMobile(); return;
     } else if (kind === 'cancel-res') {
       s.history.push({ t: 'ยกเลิกการจอง (' + s.cust.name + ')', d: nowStamp() + ' · โดย แอดมิน' });
       s.status = 'empty'; s.cust = null; s.eta = null;
-      toast('ยกเลิกการจองช่อง ' + s.code + ' แล้ว');
+      toast('ยกเลิกการจอง ' + s.code + ' แล้ว');
     }
     closeModal(); renderMap(); renderMobile();
   }
 
-  // ---------- staff mobile rendering ----------
+  // ---------- staff mobile ----------
+  // Mini map: front view of the target rack, 7 bays around the target, levels 06 (top) to 01 (floor)
   function miniMap(s) {
-    var idx = ROWS.indexOf(s.row);
-    var start = Math.max(0, Math.min(idx - 1, ROWS.length - 3));
-    var h = '<div class="mini" aria-hidden="true"><div class="bar"></div>';
-    ROWS.slice(start, start + 3).forEach(function (r) {
-      h += '<div class="r"><div class="rl">' + r + '</div>';
-      for (var c = 1; c <= COLS; c++) {
-        var x = byCode[s.wh + '-' + r + pad(c) + '-' + s.level];
-        h += '<div class="c ' + (x.code === s.code ? 'target' : x.status) + (c === 8 ? ' gap' : '') + '"></div>';
+    var start = Math.max(1, Math.min(s.bay - 3, BAYS - 6));
+    var h = '<div class="mini" aria-hidden="true"><div class="r"><div class="rl"></div>';
+    for (var b = start; b < start + 7; b++) h += '<div class="bh' + (b === s.bay ? ' on' : '') + '">' + pad(b) + '</div>';
+    h += '</div>';
+    for (var lv = LEVELS; lv >= 1; lv--) {
+      h += '<div class="r' + (lv === 1 ? ' floor' : '') + '"><div class="rl">' + pad(lv) + '</div>';
+      for (var bay = start; bay < start + 7; bay++) {
+        h += '<div class="b">';
+        for (var p = 1; p <= PALLETS; p++) {
+          var x = byCode[codeOf(s.rack, bay, p, lv)];
+          h += '<div class="c ' + (x.code === s.code ? 'target' : x.status) + '"></div>';
+        }
+        h += '</div>';
       }
       h += '</div>';
-    });
-    return h + '<div class="lv">' + s.whName + ' · ชั้นวางชั้น ' + s.level + ' · ประตูอยู่ด้านบน</div></div>';
+    }
+    return h + '<div class="cap">แร็ค ' + s.rack + ' มองจากด้านหน้า · Bay ' + pad(start) + '–' + pad(start + 6) + ' · ชั้น 01 อยู่ล่างสุด</div></div>';
   }
 
   function renderMobile() {
@@ -633,7 +670,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     $('m-clear').hidden = !q;
     var body = $('m-body'), sub = $('m-sub');
     if (!q) {
-      sub.textContent = 'พิมพ์ชื่อสินค้า หรือกดปุ่มสแกน';
+      sub.textContent = 'พิมพ์ชื่อสินค้า หรือรหัสตำแหน่ง';
       body.innerHTML = '<div class="m-empty"><div>ลองค้นหา</div><div class="chips">' + CHIPS.concat(['เทปใส OPP']).map(function (c) {
         return '<button type="button" class="chip" data-act="m-chip" data-q="' + esc(c) + '">' + esc(c) + '</button>';
       }).join('') + '</div></div>';
@@ -641,32 +678,32 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     }
     var hits = all.filter(function (s) { return isHit(s, q); });
     if (!hits.length) {
-      sub.textContent = 'ไม่พบสินค้า';
-      body.innerHTML = '<div class="m-empty">ไม่พบ "' + esc(st.mq) + '" ในคลัง ลองค้นด้วย SKU หรือชื่อลูกค้า</div>';
+      sub.textContent = 'ไม่พบ';
+      body.innerHTML = '<div class="m-empty">ไม่พบ "' + esc(st.mq) + '" ในคลัง ลองค้นด้วย SKU ชื่อลูกค้า หรือรหัสตำแหน่ง</div>';
       return;
     }
-    var custs = hits.map(function (s) { return s.cust.name; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
-    sub.textContent = 'พบใน ' + hits.length + ' ช่อง · ' + (custs.length === 1 ? custs[0] : 'ลูกค้า ' + custs.length + ' ราย');
+    var custs = hits.filter(function (s) { return s.cust; }).map(function (s) { return s.cust.name; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+    sub.textContent = 'พบ ' + hits.length + ' ตำแหน่ง' + (custs.length === 1 ? ' · ' + custs[0] : custs.length > 1 ? ' · ลูกค้า ' + custs.length + ' ราย' : '');
     var sel = hits.filter(function (s) { return s.code === st.mSel; })[0] || hits[0];
-    var h = '';
     var m = sel.status === 'occ' ? matchedItem(sel, q) : null;
-    h += '<div class="m-card"><div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">' +
-      '<div class="nm">' + esc(m ? m.name : 'ช่องจองไว้ (ยังไม่มีสินค้า)') + '</div>' +
+    var title = m ? m.name : sel.status === 'res' ? 'จองไว้ (ยังไม่มีสินค้า)' : 'ตำแหน่งว่าง';
+    var h = '<div class="m-card"><div class="top"><div style="display:flex;flex-direction:column;gap:2px;min-width:0">' +
+      '<div class="nm">' + esc(title) + '</div>' +
       (m ? '<div class="sk">' + esc(m.sku) + '</div>' : '') +
-      '<div class="cu">' + esc(sel.cust.name) + '</div></div>' +
-      '<div class="qty">' + (m ? qtyText(m) : 'เข้า ' + sel.eta) + '</div></div>' +
-      '<div class="goto"><div class="k">ไปที่ช่อง</div><div class="code">' + sel.code + '</div><div class="w">' + slotWhere(sel) + '</div></div>' +
+      (sel.cust ? '<div class="cu">' + esc(sel.cust.name) + '</div>' : '') + '</div>' +
+      '<div class="qty">' + (m ? qtyText(m) : sel.status === 'res' ? 'เข้า ' + sel.eta : '') + '</div></div>' +
+      '<div class="goto"><div class="k">ไปที่ตำแหน่ง</div><div class="code">' + sel.code + '</div><div class="w">แร็ค ' + sel.rack + ' · Bay ' + pad(sel.bay) + ' · พาเลท ' + pad(sel.pallet) + ' · ชั้น ' + pad(sel.level) + '</div></div>' +
       miniMap(sel) +
-      '<button type="button" class="m-btn" data-act="m-confirm" data-code="' + sel.code + '">สแกน QR ที่ช่องเพื่อยืนยัน</button>' +
-      '<button type="button" class="m-link" data-act="m-onmap" data-code="' + sel.code + '">ดูบนผังคลัง</button></div>';
-    hits.forEach(function (s) {
-      if (s === sel) return;
+      '<button type="button" class="m-btn" data-act="m-onmap" data-code="' + sel.code + '">ดูบนผังคลัง</button></div>';
+    var rest = hits.filter(function (s) { return s !== sel; });
+    rest.slice(0, st.mShow).forEach(function (s) {
       var mi = s.status === 'occ' ? matchedItem(s, q) : null;
       h += '<button type="button" class="m-row-item" data-act="m-pick" data-code="' + s.code + '">' +
         '<span class="code-chip">' + s.code + '</span>' +
-        '<span class="nm">' + esc(mi ? mi.name : 'จองไว้') + (custs.length > 1 ? '<small>' + esc(s.cust.name) + '</small>' : '') + '</span>' +
+        '<span class="nm">' + esc(mi ? mi.name : s.status === 'res' ? 'จองไว้' : 'ว่าง') + (custs.length > 1 && s.cust ? '<small>' + esc(s.cust.name) + '</small>' : '') + '</span>' +
         '<span class="qty">' + (mi ? qtyText(mi) : '') + '</span></button>';
     });
+    if (rest.length > st.mShow) h += '<button type="button" class="m-more" data-act="m-more">แสดงอีก ' + (rest.length - st.mShow) + ' ตำแหน่ง</button>';
     body.innerHTML = h;
   }
 
@@ -689,8 +726,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
     switch (act) {
       case 'view': setView(t.getAttribute('data-view')); break;
       case 'soon': e.preventDefault(); toast('หน้า "' + t.getAttribute('data-label') + '" จะทำในเวอร์ชันจริง'); break;
-      case 'wh': st.wh = t.getAttribute('data-wh'); renderMap(); break;
-      case 'lv': st.level = +t.getAttribute('data-lv'); renderMap(); break;
+      case 'rack': st.rack = t.getAttribute('data-rack'); renderMap(); break;
       case 'slot': selectSlot(t.getAttribute('data-code'), { showDetail: true }); break;
       case 'chip': st.q = t.getAttribute('data-q'); st.showAll = false; $('slot-search').value = st.q; renderMap(); break;
       case 'clear': st.q = ''; $('slot-search').value = ''; renderMap(); $('slot-search').focus(); break;
@@ -698,16 +734,10 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
       case 'more': st.showAll = true; renderMap(); break;
       case 'reserve': case 'receive': case 'withdraw': case 'move': case 'cancel-res': case 'history': modalFor(act); break;
       case 'modal-close': closeModal(); break;
-      case 'm-chip': st.mq = t.getAttribute('data-q'); st.mSel = null; $('m-search').value = st.mq; renderMobile(); break;
+      case 'm-chip': st.mq = t.getAttribute('data-q'); st.mSel = null; st.mShow = 12; $('m-search').value = st.mq; renderMobile(); break;
       case 'm-clear': st.mq = ''; $('m-search').value = ''; renderMobile(); $('m-search').focus(); break;
       case 'm-pick': st.mSel = t.getAttribute('data-code'); renderMobile(); $('m-body').scrollTo({ top: 0, behavior: 'smooth' }); break;
-      case 'm-scan':
-        var pool = all.filter(function (s) { return s.status === 'occ'; });
-        var it = pool[Math.floor(Math.random() * pool.length)].items[0];
-        st.mq = it.sku; st.mSel = null; $('m-search').value = it.sku; renderMobile();
-        toast('จำลองการสแกนบาร์โค้ด: ' + it.sku);
-        break;
-      case 'm-confirm': toast('ยืนยันแล้ว: อยู่ที่ช่อง ' + t.getAttribute('data-code') + ' ถูกต้อง'); break;
+      case 'm-more': st.mShow += 20; renderMobile(); break;
       case 'm-onmap':
         st.q = st.mq; st.showAll = false; $('slot-search').value = st.q;
         setView('map'); selectSlot(t.getAttribute('data-code'), { scroll: true });
@@ -726,7 +756,7 @@ a{color:var(--accent)}a:hover{color:var(--accent-hover)}
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('modal-root').innerHTML) closeModal(); });
   $('slot-search').addEventListener('input', function (e) { st.q = e.target.value; st.showAll = false; renderMap(); });
-  $('m-search').addEventListener('input', function (e) { st.mq = e.target.value; st.mSel = null; renderMobile(); });
+  $('m-search').addEventListener('input', function (e) { st.mq = e.target.value; st.mSel = null; st.mShow = 12; renderMobile(); });
   window.addEventListener('hashchange', function () {
     var h = location.hash.slice(1); if (h === 'map' || h === 'mobile') setView(h);
   });
