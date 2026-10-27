@@ -13,12 +13,12 @@ export async function login(_prev: FormState, fd: FormData): Promise<FormState> 
   const password = str(fd, "password");
   if (!username || !password) return { error: "กรอกชื่อผู้ใช้และรหัสผ่าน" };
 
-  const [u] = await (await getDb()).select().from(users).where(eq(users.username, username));
+  const [u] = await getDb().select().from(users).where(eq(users.username, username));
   if (!u || !(await bcrypt.compare(password, u.passwordHash))) {
     return { error: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" };
   }
   await createSession(u.id);
-  redirect(str(fd, "next").startsWith("/") ? str(fd, "next") : "/map");
+  redirect(str(fd, "next").startsWith("/") ? str(fd, "next") : "/dashboard");
 }
 
 export async function logout() {

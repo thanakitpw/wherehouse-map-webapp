@@ -6,7 +6,7 @@ import type { CustomerOption, Slot } from "./types";
 
 // โหลดสถานะทุกตำแหน่ง (1,080 ตำแหน่ง) พร้อมของและการจอง
 export async function getSlots(): Promise<Slot[]> {
-  const db = await getDb();
+  const db = getDb();
   const [locs, stockRows, resRows] = await Promise.all([
     db.select().from(locations).orderBy(asc(locations.code)),
     db
@@ -62,7 +62,7 @@ export async function getSlots(): Promise<Slot[]> {
 }
 
 export async function getCustomerOptions(): Promise<CustomerOption[]> {
-  const db = await getDb();
+  const db = getDb();
   const [cs, ps] = await Promise.all([
     db.select({ id: customers.id, name: customers.name }).from(customers).orderBy(asc(customers.name)),
     db.select({ id: products.id, name: products.name, sku: products.sku, unit: products.unit, customerId: products.customerId }).from(products).orderBy(asc(products.name)),

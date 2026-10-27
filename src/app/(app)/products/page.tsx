@@ -1,32 +1,38 @@
-import { asc, countDistinct, eq, sql } from "drizzle-orm";
+import { and, asc, countDistinct, eq, sql } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createProduct } from "@/app/actions/products";
 import { ActionForm, SubmitButton } from "@/components/ActionForm";
 import { getDb } from "@/db";
-import { customers, products, stock } from "@/db/schema";
-import { UNITS } from "@/lib/format";
+import { categories, customers, products, stock } from "@/db/schema";
+import { getProductOptions } from "@/lib/catalog";
 
 export const metadata: Metadata = { title: "สินค้า" };
 
 export default async function ProductsPage({ searchParams }: PageProps<"/products">) {
-  const { customer } = await searchParams;
+  const { customer, category } = await searchParams;
   const customerId = Number(customer) || undefined;
-  const db = await getDb();
-  const [custs, list] = await Promise.all([
+  const categoryId = Number(category) || undefined;
+  const db = getDb();
+  const [custs, opts, list] = await Promise.all([
     db.select({ id: customers.id, name: customers.name }).from(customers).orderBy(asc(customers.name)),
+    getProductOptions(),
     db
       .select({
-        id: products.id, sku: products.sku, name: products.name, unit: products.unit,
-        customerId: customers.id, customer: customers.name,
+        id: products.id, sku: products.sku, name: products.name, unit: products.unit, minQty: products.minQty,
+        customerId: customers.id, customer: customers.name, category: categories.name,
         qty: sql<number>`coalesce(sum(${stock.qty}), 0)::int`,
         positions: countDistinct(stock.locationCode),
       })
       .from(products)
       .innerJoin(customers, eq(products.customerId, customers.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
       .leftJoin(stock, eq(stock.productId, products.id))
-      .where(customerId ? eq(products.customerId, customerId) : undefined)
-      .groupBy(products.id, customers.id)
+      .where(and(
+        customerId ? eq(products.customerId, customerId) : undefined,
+        categoryId ? eq(products.categoryId, categoryId) : undefined,
+      ))
+      .groupBy(products.id, customers.id, categories.id)
       .orderBy(asc(customers.name), asc(products.name)),
   ]);
 
@@ -52,14 +58,28 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
               <div className="field"><label htmlFor="p-sku">SKU</label><input id="p-sku" name="sku" required placeholder="เช่น MLI-SUN50" /></div>
               <div className="field"><label htmlFor="p-name">ชื่อสินค้า</label><input id="p-name" name="name" required /></div>
               <div className="field">
-                <label htmlFor="p-unit">หน่วย</label>
-                <select id="p-unit" name="unit">{UNITS.map((u) => <option key={u}>{u}</option>)}</select>
+                <label htmlFor="p-cat">หมวดหมู่</label>
+                <select id="p-cat" name="categoryId" defaultValue="">
+                  <option value="">ไม่ระบุ</option>
+                  {opts.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               </div>
+              <div className="field">
+                <label htmlFor="p-unit">หน่วย</label>
+                <select id="p-unit" name="unit">{opts.units.map((u) => <option key={u}>{u}</option>)}</select>
+              </div>
+              <div className="field"><label htmlFor="p-min">ขั้นต่ำ (0 = ไม่เตือน)</label><input id="p-min" name="minQty" type="number" min={0} defaultValue={0} /></div>
               <SubmitButton>เพิ่มสินค้า</SubmitButton>
             </div>
           </ActionForm>
         )}
       </div>
+
+      {categoryId && (
+        <p className="meta" style={{ margin: 0 }}>
+          หมวดหมู่ {opts.categories.find((c) => c.id === categoryId)?.name ?? "–"} · <Link href="/products">ดูทุกหมวดหมู่</Link>
+        </p>
+      )}
 
       <div className="filters">
         <Link href="/products" aria-current={!customerId ? "page" : undefined}>ทุกลูกค้า</Link>
@@ -70,15 +90,19 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
 
       <div className="card table-wrap">
         <table className="table">
-          <thead><tr><th>SKU</th><th>ชื่อสินค้า</th><th>ลูกค้า</th><th className="num">คงเหลือ</th><th className="num">ตำแหน่ง</th></tr></thead>
+          <thead><tr><th>SKU</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>ลูกค้า</th><th className="num">คงเหลือ</th><th className="num">ตำแหน่ง</th></tr></thead>
           <tbody>
-            {list.length === 0 && <tr><td colSpan={5} className="empty-row">ยังไม่มีสินค้า</td></tr>}
+            {list.length === 0 && <tr><td colSpan={6} className="empty-row">ยังไม่มีสินค้า</td></tr>}
             {list.map((p) => (
               <tr key={p.id}>
                 <td className="mono"><Link href={`/products/${p.id}`}>{p.sku}</Link></td>
                 <td>{p.name}</td>
+                <td>{p.category ?? "–"}</td>
                 <td>{p.customer}</td>
-                <td className="num">{p.qty.toLocaleString()} {p.unit}</td>
+                <td className="num">
+                  {p.minQty > 0 && p.qty < p.minQty && <span className="tag low" style={{ marginRight: 8 }}>ต่ำกว่าขั้นต่ำ</span>}
+                  {p.qty.toLocaleString()} {p.unit}
+                </td>
                 <td className="num">{p.positions}</td>
               </tr>
             ))}

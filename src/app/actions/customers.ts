@@ -12,7 +12,7 @@ export async function createCustomer(_prev: FormState, fd: FormData): Promise<Fo
   await requireUser();
   const name = str(fd, "name");
   if (!name) return { error: "กรอกชื่อลูกค้า" };
-  await (await getDb()).insert(customers).values({ name, phone: str(fd, "phone"), note: str(fd, "note") });
+  await getDb().insert(customers).values({ name, phone: str(fd, "phone"), note: str(fd, "note") });
   revalidatePath("/", "layout");
   return { ok: `เพิ่มลูกค้า ${name} แล้ว` };
 }
@@ -22,7 +22,7 @@ export async function updateCustomer(_prev: FormState, fd: FormData): Promise<Fo
   const id = int(fd, "id");
   const name = str(fd, "name");
   if (!name) return { error: "กรอกชื่อลูกค้า" };
-  await (await getDb()).update(customers).set({ name, phone: str(fd, "phone"), note: str(fd, "note") }).where(eq(customers.id, id));
+  await getDb().update(customers).set({ name, phone: str(fd, "phone"), note: str(fd, "note") }).where(eq(customers.id, id));
   revalidatePath("/", "layout");
   return { ok: "บันทึกแล้ว" };
 }
@@ -31,7 +31,7 @@ export async function updateCustomer(_prev: FormState, fd: FormData): Promise<Fo
 export async function deleteCustomer(_prev: FormState, fd: FormData): Promise<FormState> {
   await requireUser();
   const id = int(fd, "id");
-  const db = await getDb();
+  const db = getDb();
   const [[p], [r], [m]] = await Promise.all([
     db.select({ n: count() }).from(products).where(eq(products.customerId, id)),
     db.select({ n: count() }).from(reservations).where(eq(reservations.customerId, id)),

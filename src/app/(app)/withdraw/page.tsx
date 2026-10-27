@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "เบิกสินค้า" };
 export default async function WithdrawPage({ searchParams }: PageProps<"/withdraw">) {
   const { codes } = await searchParams;
   const initialCodes = typeof codes === "string" ? codes.split(",").filter(Boolean) : [];
-  const db = await getDb();
+  const db = getDb();
   const actor = alias(users, "actor");
   const [rows, recent] = await Promise.all([
     db

@@ -1,4 +1,5 @@
-import { date, integer, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+// ทุกตารางเปิด RLS ไว้ (ไม่มี policy) เพื่อปิดการเข้าถึงผ่าน Supabase Data API แอปต่อด้วย role postgres ซึ่งข้าม RLS
+import { date, index, integer, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 // คนที่ล็อกอินเข้าระบบ: admin จัดการผู้ใช้ได้, staff ใช้งานคลังได้อย่างเดียว
 export const users = pgTable("users", {
@@ -8,7 +9,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   role: text("role", { enum: ["admin", "staff"] }).notNull().default("staff"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
 
 // ลูกค้าที่ฝากของในคลัง
 export const customers = pgTable("customers", {
@@ -17,17 +18,33 @@ export const customers = pgTable("customers", {
   phone: text("phone").notNull().default(""),
   note: text("note").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
+
+// หมวดหมู่สินค้า แอดมินตั้งเองได้ที่หน้าตั้งค่า
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
+// หน่วยนับที่เลือกได้ตอนเพิ่มสินค้า (สินค้าเก็บเป็นชื่อหน่วย)
+export const units = pgTable("units", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+}).enableRLS();
 
 // สินค้าของลูกค้าแต่ละราย (SKU ห้ามซ้ำทั้งระบบ)
+// minQty = จำนวนขั้นต่ำ ถ้าคงเหลือรวมต่ำกว่านี้จะขึ้นเตือนที่แดชบอร์ด (0 = ไม่เตือน)
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id").notNull().references(() => customers.id),
+  categoryId: integer("category_id").references(() => categories.id),
   sku: text("sku").notNull().unique(),
   name: text("name").notNull(),
   unit: text("unit").notNull().default("ลัง"),
+  minQty: integer("min_qty").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("products_category_id_idx").on(t.categoryId)]).enableRLS();
 
 // ตำแหน่งพาเลทในคลัง เช่น AA-01-0106 = แร็ค AA · Bay 01 · พาเลท 01 · ชั้น 06
 export const locations = pgTable("locations", {
@@ -37,7 +54,7 @@ export const locations = pgTable("locations", {
   bay: integer("bay").notNull(),
   pallet: integer("pallet").notNull(),
   level: integer("level").notNull(),
-});
+}).enableRLS();
 
 // ของที่วางอยู่บนตำแหน่ง (1 ตำแหน่งมีได้หลายสินค้า แต่ต้องเป็นลูกค้าคนเดียวกัน)
 export const stock = pgTable(
@@ -51,7 +68,7 @@ export const stock = pgTable(
     receivedBy: integer("received_by").references(() => users.id),
   },
   (t) => [uniqueIndex("stock_location_product").on(t.locationCode, t.productId)],
-);
+).enableRLS();
 
 // การจองตำแหน่งว่างไว้ให้ลูกค้า (1 ตำแหน่งจองได้ครั้งละ 1 ราย)
 export const reservations = pgTable("reservations", {
@@ -61,7 +78,7 @@ export const reservations = pgTable("reservations", {
   eta: date("eta"),
   createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
 
 // ใบเบิก: การเบิกหนึ่งครั้ง (หลายตำแหน่งได้) ของลูกค้าหนึ่งราย
 export const withdrawals = pgTable("withdrawals", {
@@ -70,7 +87,7 @@ export const withdrawals = pgTable("withdrawals", {
   note: text("note").notNull().default(""),
   userId: integer("user_id").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
 
 // ประวัติทุกการเคลื่อนไหว ใช้ทำหน้า รับเข้า/เบิกออก และประวัติตำแหน่ง
 export const movements = pgTable("movements", {
@@ -85,7 +102,7 @@ export const movements = pgTable("movements", {
   withdrawalId: integer("withdrawal_id").references(() => withdrawals.id),
   userId: integer("user_id").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
 
 export type Role = (typeof users.$inferSelect)["role"];
 export type MovementType = (typeof movements.$inferSelect)["type"];

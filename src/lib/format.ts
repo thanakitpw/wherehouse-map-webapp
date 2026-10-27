@@ -14,7 +14,5 @@ export const MOVEMENT_LABEL: Record<string, string> = {
   CANCEL: "ยกเลิกจอง",
 };
 
-export const UNITS = ["ลัง", "ชิ้น", "กล่อง", "กระสอบ", "แพ็ก"];
-
 // เลขที่ใบเบิก เช่น WD-00012
 export const docNo = (id: number) => `WD-${String(id).padStart(5, "0")}`;

@@ -10,7 +10,7 @@ import { PrintButton } from "./PrintButton";
 export default async function WithdrawalPage({ params }: PageProps<"/withdraw/[id]">) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
-  const db = await getDb();
+  const db = getDb();
   const actor = alias(users, "actor");
   const [w] = await db
     .select({ id: withdrawals.id, at: withdrawals.createdAt, note: withdrawals.note, customer: customers.name, phone: customers.phone, by: actor.name })

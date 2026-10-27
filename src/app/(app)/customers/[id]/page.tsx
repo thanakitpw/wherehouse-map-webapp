@@ -10,7 +10,7 @@ import { thDate } from "@/lib/format";
 export default async function CustomerPage({ params }: PageProps<"/customers/[id]">) {
   const id = Number((await params).id);
   if (!Number.isInteger(id)) notFound();
-  const db = await getDb();
+  const db = getDb();
   const [c] = await db.select().from(customers).where(eq(customers.id, id));
   if (!c) notFound();
   const [rows, res] = await Promise.all([

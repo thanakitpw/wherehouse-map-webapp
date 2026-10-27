@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "ผู้ใช้" };
 
 export default async function UsersPage() {
   const me = await requireAdmin();
-  const list = await (await getDb())
+  const list = await getDb()
     .select({ id: users.id, username: users.username, name: users.name, role: users.role, createdAt: users.createdAt })
     .from(users)
     .where(not(like(users.username, "%#off%")))

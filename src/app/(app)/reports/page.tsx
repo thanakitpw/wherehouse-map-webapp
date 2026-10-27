@@ -14,7 +14,7 @@ export default async function ReportsPage() {
   const startOfToday = new Date(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" }) + "T00:00:00+07:00");
   const [slots, today] = await Promise.all([
     getSlots(),
-    (await getDb())
+    getDb()
       .select({ type: movements.type, n: sql<number>`count(*)::int` })
       .from(movements)
       .where(gte(movements.createdAt, startOfToday))

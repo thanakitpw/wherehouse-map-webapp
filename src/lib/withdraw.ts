@@ -19,7 +19,7 @@ export async function applyWithdrawal(opts: {
   if (!lines.length) return { error: "ใส่จำนวนที่ต้องการเบิกอย่างน้อย 1 รายการ" };
 
   // ทำใน transaction และล็อกแถวสต็อกไว้ กันสองคนเบิกตำแหน่งเดียวกันพร้อมกันจนสต็อกติดลบ
-  return (await getDb()).transaction(async (db) => {
+  return getDb().transaction(async (db) => {
     const rows = await db
       .select({
         id: stock.id, code: stock.locationCode, qty: stock.qty, productId: stock.productId,

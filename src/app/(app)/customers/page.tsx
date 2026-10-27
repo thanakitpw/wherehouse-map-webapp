@@ -9,7 +9,7 @@ import { customers, products, reservations, stock } from "@/db/schema";
 export const metadata: Metadata = { title: "ลูกค้า" };
 
 export default async function CustomersPage() {
-  const db = await getDb();
+  const db = getDb();
   const [list, used, reserved] = await Promise.all([
     db
       .select({ id: customers.id, name: customers.name, phone: customers.phone, products: countDistinct(products.id) })

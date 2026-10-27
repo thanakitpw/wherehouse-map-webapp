@@ -10,11 +10,10 @@ import { users, type Role } from "@/db/schema";
 export const SESSION_COOKIE = "session";
 const MAX_AGE_DAYS = 7;
 
-// โปรเจคนี้ไม่บังคับตั้ง SESSION_SECRET ถ้าไม่ได้ตั้งจะใช้ค่าตายตัวนี้แทน
-const DEFAULT_SECRET = "warehouse-map-demo-session-secret";
-
 function secretKey() {
-  return new TextEncoder().encode(process.env.SESSION_SECRET || DEFAULT_SECRET);
+  const s = process.env.SESSION_SECRET;
+  if (!s) throw new Error("SESSION_SECRET is not set");
+  return new TextEncoder().encode(s);
 }
 
 export async function createSession(userId: number) {
@@ -45,7 +44,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify<{ userId: number }>(token, secretKey(), { algorithms: ["HS256"] });
-    const [u] = await (await getDb())
+    const [u] = await getDb()
       .select({ id: users.id, username: users.username, name: users.name, role: users.role })
       .from(users)
       .where(eq(users.id, payload.userId));
@@ -63,6 +62,6 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const u = await requireUser();
-  if (u.role !== "admin") redirect("/map");
+  if (u.role !== "admin") redirect("/dashboard");
   return u;
 }

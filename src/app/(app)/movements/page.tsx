@@ -14,7 +14,7 @@ export default async function MovementsPage({ searchParams }: PageProps<"/moveme
   const { type } = await searchParams;
   const filter = TYPES.find((t) => t === type);
   const actor = alias(users, "actor");
-  const rows = await (await getDb())
+  const rows = await getDb()
     .select({
       id: movements.id, type: movements.type, code: movements.locationCode, to: movements.toLocationCode,
       qty: movements.qty, note: movements.note, at: movements.createdAt, withdrawalId: movements.withdrawalId,

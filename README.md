@@ -5,7 +5,7 @@
 ## เทคโนโลยี
 
 - Next.js 16 (App Router, Server Actions) + TypeScript
-- ฐานข้อมูลจำลอง: Postgres แบบ in-memory ([PGlite](https://pglite.dev)) + Drizzle ORM ไม่ต้องต่อฐานข้อมูลภายนอก
+- Postgres บน Supabase + Drizzle ORM (ต่อด้วยไลบรารี `postgres`) ทุกตารางเปิด RLS ไว้เพื่อปิดการเข้าถึงผ่าน Data API
 - ล็อกอินด้วยชื่อผู้ใช้/รหัสผ่าน (bcrypt + JWT ใน cookie)
 - Deploy บน Vercel
 
@@ -14,6 +14,8 @@
 | หน้า | ใช้ทำอะไร |
 |---|---|
 | `/login` | เข้าสู่ระบบ |
+| `/dashboard` | หน้าแรกหลังล็อกอิน: การใช้พื้นที่ รับเข้า/เบิกออก 14 วัน สินค้าต่ำกว่าขั้นต่ำ ลูกค้าที่ใช้พื้นที่มากสุด ความเคลื่อนไหวล่าสุด |
+| `/settings` | (แอดมิน) หลังบ้าน: หมวดหมู่สินค้า หน่วยนับ และจำนวนขั้นต่ำของสินค้าแต่ละรายการ |
 | `/map` | ผังคลัง ค้นหา กดดูตำแหน่ง รับเข้า เบิกออก ย้าย จอง ยกเลิกจอง ดูประวัติ · โหมด "เลือกหลายตำแหน่งเพื่อเบิก" |
 | `/withdraw` | เบิกหลายตำแหน่งในครั้งเดียว: ใส่จำนวนให้ระบบเลือกตำแหน่ง (เข้าก่อนออกก่อน) หรือติ๊กเลือกเอง แล้วออกใบเบิกใบเดียว |
 | `/withdraw/[id]` | ใบเบิก รายการหยิบเรียงตามตำแหน่ง พิมพ์ได้ |
@@ -25,32 +27,36 @@
 | `/users` | (แอดมิน) เพิ่มผู้ใช้ เปลี่ยนรหัสผ่าน ปิดการใช้งาน |
 | `/prototype` | ต้นแบบ HTML เดิมที่ให้ลูกค้าดู |
 
-## เริ่มใช้งาน
+## ตั้งค่าครั้งแรก
 
 ```bash
 npm install
+# สร้าง .env.local ใส่ 2 ค่า:
+#   DATABASE_URL   = Supabase > Connect > Transaction pooler (พอร์ต 6543) แทน [YOUR-PASSWORD] ด้วยรหัสฐานข้อมูล
+#   SESSION_SECRET = สุ่มยาว ๆ เช่น `openssl rand -base64 32`
+# บน Vercel ใส่ 2 ค่านี้เหมือนกันที่ Settings > Environment Variables
+npm run db:push                    # สร้างตารางใน Postgres
+npm run db:seed                    # ใส่ตำแหน่ง 1,080 ช่อง ผู้ใช้เริ่มต้น และข้อมูลตัวอย่าง
 npm run dev                        # เปิด http://localhost:3000
 ```
 
-ไม่ต้องตั้งค่า env หรือฐานข้อมูลใด ๆ ทุกครั้งที่ server เริ่ม ระบบจะสร้างตารางและใส่ข้อมูลตัวอย่างให้ใหม่ใน memory (ตำแหน่ง 1,080 ช่อง ลูกค้า 6 ราย สินค้า และสต็อกตัวอย่าง)
-
-> ข้อมูลที่เพิ่ม/แก้ระหว่างใช้งานจะหายเมื่อรีสตาร์ท server ถ้า deploy บน Vercel แต่ละ instance ก็มีข้อมูลแยกกันและกลับเป็นค่าเริ่มต้นเมื่อ instance ถูกปิด
-
-บัญชีผู้ใช้:
+บัญชีเริ่มต้นจาก seed (เปลี่ยนรหัสผ่านที่หน้า `/users` หลังล็อกอิน):
 
 | ชื่อผู้ใช้ | รหัสผ่าน | สิทธิ์ |
 |---|---|---|
 | `admin` | `admin1234` | แอดมิน |
 | `staff` | `staff1234` | พนักงาน |
 
+`npm run db:studio` เปิด Drizzle Studio ไว้ดู/แก้ข้อมูลในตารางตรง ๆ
+
+> `npm run db:push` ใช้สร้างตารางครั้งแรกกับฐานข้อมูลว่างได้ แต่ตอนแก้ตารางที่มีอยู่แล้วบน Supabase drizzle-kit (0.31) พังตอนอ่าน constraint ให้แก้ `src/db/schema.ts` แล้วรัน SQL `alter table` เองใน Supabase SQL Editor (หรือผ่าน Supabase MCP) แทน
+
 ## โครงสร้างโค้ด
 
 ```
 src/
   db/schema.ts          ตารางทั้งหมด (users, customers, products, locations, stock, reservations, withdrawals, movements)
-  db/index.ts           ฐานข้อมูลจำลอง PGlite ใน memory
-  db/ddl.ts             SQL สร้างตาราง (generate จาก schema.ts ด้วย `npx drizzle-kit generate`)
-  db/seed.ts            ข้อมูลเริ่มต้น
+  db/index.ts           connection ไป Supabase
   lib/layout.ts         ผัง Zone A และรูปแบบรหัสตำแหน่ง AA-01-0106
   lib/warehouse.ts      โหลดสถานะทุกตำแหน่งสำหรับผังคลัง
   lib/session.ts        ล็อกอิน / ตรวจสิทธิ์
@@ -58,6 +64,7 @@ src/
   app/actions/*.ts      Server Actions (รับเข้า เบิกออก ย้าย จอง ลูกค้า สินค้า ผู้ใช้)
   app/(app)/*           หน้าหลังล็อกอิน
   app/m/                หน้ามือถือ
+scripts/seed.ts         ข้อมูลเริ่มต้น
 public/prototype/       ต้นแบบ HTML
 ```
 

@@ -17,12 +17,12 @@ async function guard() {
 }
 
 async function locationExists(code: string) {
-  const [l] = await (await getDb()).select({ code: locations.code }).from(locations).where(eq(locations.code, code));
+  const [l] = await getDb().select({ code: locations.code }).from(locations).where(eq(locations.code, code));
   return !!l;
 }
 
 async function stockCustomerIds(code: string) {
-  const rows = await (await getDb())
+  const rows = await getDb()
     .select({ customerId: products.customerId })
     .from(stock)
     .innerJoin(products, eq(stock.productId, products.id))
@@ -38,7 +38,7 @@ function done(ok: string): ActionResult {
 // รับสินค้าเข้าตำแหน่ง
 export async function receiveStock(input: { code: string; productId: number; qty: number }): Promise<ActionResult> {
   const u = await guard();
-  const db = await getDb();
+  const db = getDb();
   const qty = Math.floor(Number(input.qty));
   if (!(qty > 0)) return { error: "จำนวนต้องมากกว่า 0" };
   if (!(await locationExists(input.code))) return { error: "ไม่พบตำแหน่งนี้" };
@@ -75,7 +75,7 @@ export async function withdrawStock(input: { code: string; items: { stockId: num
 // ย้ายของทั้งพาเลทไปตำแหน่งว่าง
 export async function moveStock(input: { from: string; to: string }): Promise<ActionResult> {
   const u = await guard();
-  const db = await getDb();
+  const db = getDb();
   if (input.from === input.to) return { error: "เลือกตำแหน่งปลายทางที่ไม่ใช่ตำแหน่งเดิม" };
   if (!(await locationExists(input.to))) return { error: "ไม่พบตำแหน่งปลายทาง" };
 
@@ -93,7 +93,7 @@ export async function moveStock(input: { from: string; to: string }): Promise<Ac
 // จองตำแหน่งว่างไว้ให้ลูกค้า
 export async function reserveLocation(input: { code: string; customerId: number; eta: string }): Promise<ActionResult> {
   const u = await guard();
-  const db = await getDb();
+  const db = getDb();
   if (!(await locationExists(input.code))) return { error: "ไม่พบตำแหน่งนี้" };
   if ((await stockCustomerIds(input.code)).length) return { error: "ตำแหน่งนี้มีสินค้าอยู่แล้ว" };
   const [c] = await db.select().from(customers).where(eq(customers.id, input.customerId));
@@ -111,7 +111,7 @@ export async function reserveLocation(input: { code: string; customerId: number;
 
 export async function cancelReservation(input: { code: string }): Promise<ActionResult> {
   const u = await guard();
-  const db = await getDb();
+  const db = getDb();
   const [r] = await db.select().from(reservations).where(eq(reservations.locationCode, input.code));
   if (!r) return { error: "ตำแหน่งนี้ไม่ได้ถูกจอง" };
   await db.delete(reservations).where(eq(reservations.id, r.id));
@@ -122,7 +122,7 @@ export async function cancelReservation(input: { code: string }): Promise<Action
 // ประวัติของตำแหน่ง (ล่าสุดก่อน)
 export async function getLocationHistory(code: string): Promise<HistoryRow[]> {
   await guard();
-  const db = await getDb();
+  const db = getDb();
   const actor = alias(users, "actor");
   const rows = await db
     .select({
