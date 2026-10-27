@@ -1,0 +1,91 @@
+import { date, integer, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+
+// คนที่ล็อกอินเข้าระบบ: admin จัดการผู้ใช้ได้, staff ใช้งานคลังได้อย่างเดียว
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name").notNull(),
+  role: text("role", { enum: ["admin", "staff"] }).notNull().default("staff"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ลูกค้าที่ฝากของในคลัง
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull().default(""),
+  note: text("note").notNull().default(""),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// สินค้าของลูกค้าแต่ละราย (SKU ห้ามซ้ำทั้งระบบ)
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  sku: text("sku").notNull().unique(),
+  name: text("name").notNull(),
+  unit: text("unit").notNull().default("ลัง"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ตำแหน่งพาเลทในคลัง เช่น AA-01-0106 = แร็ค AA · Bay 01 · พาเลท 01 · ชั้น 06
+export const locations = pgTable("locations", {
+  code: text("code").primaryKey(),
+  zone: text("zone").notNull(),
+  rack: text("rack").notNull(),
+  bay: integer("bay").notNull(),
+  pallet: integer("pallet").notNull(),
+  level: integer("level").notNull(),
+});
+
+// ของที่วางอยู่บนตำแหน่ง (1 ตำแหน่งมีได้หลายสินค้า แต่ต้องเป็นลูกค้าคนเดียวกัน)
+export const stock = pgTable(
+  "stock",
+  {
+    id: serial("id").primaryKey(),
+    locationCode: text("location_code").notNull().references(() => locations.code),
+    productId: integer("product_id").notNull().references(() => products.id),
+    qty: integer("qty").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+    receivedBy: integer("received_by").references(() => users.id),
+  },
+  (t) => [uniqueIndex("stock_location_product").on(t.locationCode, t.productId)],
+);
+
+// การจองตำแหน่งว่างไว้ให้ลูกค้า (1 ตำแหน่งจองได้ครั้งละ 1 ราย)
+export const reservations = pgTable("reservations", {
+  id: serial("id").primaryKey(),
+  locationCode: text("location_code").notNull().unique().references(() => locations.code),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  eta: date("eta"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ใบเบิก: การเบิกหนึ่งครั้ง (หลายตำแหน่งได้) ของลูกค้าหนึ่งราย
+export const withdrawals = pgTable("withdrawals", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  note: text("note").notNull().default(""),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ประวัติทุกการเคลื่อนไหว ใช้ทำหน้า รับเข้า/เบิกออก และประวัติตำแหน่ง
+export const movements = pgTable("movements", {
+  id: serial("id").primaryKey(),
+  type: text("type", { enum: ["IN", "OUT", "MOVE", "RESERVE", "CANCEL"] }).notNull(),
+  locationCode: text("location_code").notNull(),
+  toLocationCode: text("to_location_code"),
+  customerId: integer("customer_id").references(() => customers.id),
+  productId: integer("product_id").references(() => products.id),
+  qty: integer("qty"),
+  note: text("note").notNull().default(""),
+  withdrawalId: integer("withdrawal_id").references(() => withdrawals.id),
+  userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type Role = (typeof users.$inferSelect)["role"];
+export type MovementType = (typeof movements.$inferSelect)["type"];

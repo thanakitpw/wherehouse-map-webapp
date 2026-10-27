@@ -1,7 +1,23 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# misc
 .DS_Store
-node_modules/
+*.pem
+npm-debug.log*
+
+# env files
 .env*
+
+# vercel
 .vercel/
+
 # original design exports (extracted copies live in _design/)
 *.zip
-.vercel
