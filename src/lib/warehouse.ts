@@ -20,9 +20,10 @@ export async function getSlots(): Promise<Slot[]> {
         name: products.name,
         sku: products.sku,
         unit: products.unit,
+        customsNo: products.customsNo,
+        containerNo: products.containerNo,
         customerId: customers.id,
         customerName: customers.name,
-        phone: customers.phone,
       })
       .from(stock)
       .innerJoin(products, eq(stock.productId, products.id))
@@ -30,7 +31,7 @@ export async function getSlots(): Promise<Slot[]> {
       .leftJoin(users, eq(stock.receivedBy, users.id))
       .orderBy(asc(stock.id)),
     db
-      .select({ code: reservations.locationCode, eta: reservations.eta, customerId: customers.id, customerName: customers.name, phone: customers.phone })
+      .select({ code: reservations.locationCode, eta: reservations.eta, customerId: customers.id, customerName: customers.name })
       .from(reservations)
       .innerJoin(customers, eq(reservations.customerId, customers.id)),
   ]);
@@ -43,8 +44,10 @@ export async function getSlots(): Promise<Slot[]> {
     const s = byCode.get(r.code);
     if (!s) continue;
     s.status = "occ";
-    s.customer = { id: r.customerId, name: r.customerName, phone: r.phone };
-    s.items.push({ stockId: r.stockId, productId: r.productId, name: r.name, sku: r.sku, qty: r.qty, unit: r.unit });
+    s.customer = { id: r.customerId, name: r.customerName };
+    s.items.push({
+      stockId: r.stockId, productId: r.productId, name: r.name, sku: r.sku, qty: r.qty, unit: r.unit, customsNo: r.customsNo, containerNo: r.containerNo,
+    });
     const at = r.receivedAt.toISOString();
     if (!s.receivedAt || at > s.receivedAt) {
       s.receivedAt = at;
@@ -55,7 +58,7 @@ export async function getSlots(): Promise<Slot[]> {
     const s = byCode.get(r.code);
     if (!s || s.status === "occ") continue;
     s.status = "res";
-    s.customer = { id: r.customerId, name: r.customerName, phone: r.phone };
+    s.customer = { id: r.customerId, name: r.customerName };
     s.eta = r.eta;
   }
   return [...byCode.values()];

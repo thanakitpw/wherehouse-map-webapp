@@ -7,6 +7,7 @@ import {
   getLocationHistory,
   moveStock,
   receiveStock,
+  receiveStockMany,
   reserveLocation,
   withdrawStock,
 } from "@/app/actions/stock";
@@ -18,7 +19,9 @@ import type { ActionResult, CustomerOption, HistoryRow, Slot } from "@/lib/types
 
 const CHIPS = ["ครีมกันแดด", "ShopKit", "ข้าวหอมมะลิ", "BG-USBC", "AC-05"];
 
-type ModalKind = "reserve" | "receive" | "withdraw" | "move" | "cancel" | "history";
+type ModalKind = "reserve" | "receive" | "receiveMany" | "withdraw" | "move" | "cancel" | "history";
+// เลือกหลายตำแหน่ง: เพื่อทำใบเบิก หรือเพื่อรับสินค้าเข้าทีเดียวหลายตำแหน่ง
+type PickKind = "withdraw" | "receive";
 
 export function MapView({
   slots,
@@ -38,8 +41,7 @@ export function MapView({
   const [showAll, setShowAll] = useState(false);
   const [modal, setModal] = useState<ModalKind | null>(null);
   const [toast, setToast] = useState("");
-  // โหมดเลือกหลายตำแหน่งเพื่อทำใบเบิก
-  const [pickMode, setPickMode] = useState(false);
+  const [pickMode, setPickMode] = useState<PickKind | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const scrollTo = useRef<string | null>(initialSel ?? null);
 
@@ -78,7 +80,13 @@ export function MapView({
   }
 
   const pickedSet = useMemo(() => new Set(picked), [picked]);
-  const pickedCustomer = picked.length ? byCode.get(picked[0])?.customer ?? null : null;
+  // ลูกค้าของตำแหน่งที่เลือกไว้ (โหมดรับเข้าเลือกตำแหน่งว่างปนได้ จึงหาจากตำแหน่งแรกที่มีเจ้าของ)
+  const pickedCustomer = picked.map((c) => byCode.get(c)?.customer).find(Boolean) ?? null;
+
+  function startPick(kind: PickKind) {
+    setPickMode(pickMode === kind ? null : kind);
+    setPicked([]);
+  }
 
   function togglePick(code: string) {
     const s = byCode.get(code);
@@ -88,12 +96,14 @@ export function MapView({
       setPicked(picked.filter((c) => c !== code));
       return;
     }
-    if (s.status !== "occ" || !s.customer) {
+    if (pickMode === "withdraw" && (s.status !== "occ" || !s.customer)) {
       setToast("เลือกได้เฉพาะตำแหน่งที่มีสินค้า");
       return;
     }
-    if (pickedCustomer && pickedCustomer.id !== s.customer.id) {
-      setToast(`ใบเบิกหนึ่งใบเป็นของลูกค้ารายเดียว (${pickedCustomer.name})`);
+    if (pickedCustomer && s.customer && pickedCustomer.id !== s.customer.id) {
+      setToast(pickMode === "withdraw"
+        ? `ใบเบิกหนึ่งใบเป็นของลูกค้ารายเดียว (${pickedCustomer.name})`
+        : `รับเข้าครั้งเดียวได้เฉพาะตำแหน่งว่างหรือของ ${pickedCustomer.name}`);
       return;
     }
     setPicked([...picked, code]);
@@ -106,12 +116,13 @@ export function MapView({
     } else select(code, { ...opts, showDetail: true });
   }
 
-  // ผลค้นหาที่เลือกรวดเดียวได้ (มีสินค้าและเป็นลูกค้ารายเดียวกัน)
-  const occHits = hits.filter((s) => s.status === "occ" && s.customer);
-  const hitCustomers = new Set(occHits.map((s) => s.customer!.id));
+  // ผลค้นหาที่เลือกรวดเดียวได้: เบิก = ตำแหน่งที่มีสินค้า, รับเข้า = ตำแหน่งว่าง (ต้องเป็นลูกค้ารายเดียวกันทั้งหมด)
+  const pickableHits = pickMode === "withdraw" ? hits.filter((s) => s.status === "occ" && s.customer) : hits.filter((s) => s.status === "empty");
+  const hitCustomers = new Set(pickableHits.flatMap((s) => (s.customer ? [s.customer.id] : [])));
   const canPickAllHits =
-    pickMode && occHits.length > 0 && hitCustomers.size === 1 && (!pickedCustomer || hitCustomers.has(pickedCustomer.id)) &&
-    occHits.some((s) => !pickedSet.has(s.code));
+    !!pickMode && pickableHits.length > 0 && hitCustomers.size <= 1 &&
+    (!pickedCustomer || hitCustomers.size === 0 || hitCustomers.has(pickedCustomer.id)) &&
+    pickableHits.some((s) => !pickedSet.has(s.code));
 
   function onDone(res: ActionResult, nextSel?: string) {
     if (res.ok) {
@@ -119,6 +130,13 @@ export function MapView({
       setToast(res.ok);
       if (nextSel) select(nextSel, { scroll: true });
     }
+  }
+
+  function onReceivedMany(res: ActionResult) {
+    if (!res.ok) return;
+    onDone(res);
+    setPickMode(null);
+    setPicked([]);
   }
 
   const limit = showAll ? hits.length : 8;
@@ -162,9 +180,16 @@ export function MapView({
                 {r}{hasQ ? ` (${hits.filter((s) => s.rack === r).length})` : ""}
               </button>
             ))}
-            <button type="button" className="tab pick" aria-pressed={pickMode} onClick={() => { setPickMode(!pickMode); setPicked([]); }}>
-              {pickMode ? "เลิกเลือกหลายตำแหน่ง" : "เลือกหลายตำแหน่งเพื่อเบิก"}
+            <button type="button" className="tab pick" aria-pressed={pickMode === "receive"} onClick={() => startPick("receive")}>
+              {pickMode === "receive" ? "เลิกเลือก" : "เลือกหลายตำแหน่งเพื่อรับเข้า"}
             </button>
+            <button type="button" className="tab pick" aria-pressed={pickMode === "withdraw"} onClick={() => startPick("withdraw")}>
+              {pickMode === "withdraw" ? "เลิกเลือก" : "เลือกหลายตำแหน่งเพื่อเบิก"}
+            </button>
+            <a className="tab" href={`/map/export${rack === "all" ? "" : `?rack=${rack}`}`} download
+              style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
+              Export Excel{rack === "all" ? "" : ` (${rack})`}
+            </a>
           </div>
           <div className="stats">
             ใช้แล้ว {Math.round(((stats.occ + stats.res) * 100) / Math.max(1, stats.total))}% · มีสินค้า {stats.occ} · จอง {stats.res} · ว่าง {stats.empty} จาก {stats.total.toLocaleString()} ตำแหน่ง
@@ -191,7 +216,7 @@ export function MapView({
             <div><span style={{ background: "#22364A" }} />มีสินค้า</div>
             <div><span style={{ background: "#F5B40A" }} />ผลค้นหา</div>
             <div><span style={{ background: "#fff", boxShadow: "0 0 0 2px #fff,0 0 0 4px #1F4FD1" }} />ตำแหน่งที่เลือก</div>
-            {pickMode && <div><span style={{ background: "#1F4FD1" }} />เลือกเพื่อเบิก</div>}
+            {pickMode && <div><span style={{ background: "#1F4FD1" }} />{pickMode === "withdraw" ? "เลือกเพื่อเบิก" : "เลือกเพื่อรับเข้า"}</div>}
             <div className="k">1 ช่อง = 1 ตำแหน่งพาเลท</div>
           </div>
         </div>
@@ -224,8 +249,10 @@ export function MapView({
               <button type="button" className="linkbtn" onClick={() => setShowAll(true)}>แสดงทั้งหมด {hits.length} รายการ</button>
             )}
             {canPickAllHits && (
-              <button type="button" className="linkbtn" onClick={() => setPicked([...new Set([...picked, ...occHits.map((s) => s.code)])])}>
-                เลือกทั้ง {occHits.length} ตำแหน่งที่มีสินค้าเพื่อเบิก
+              <button type="button" className="linkbtn" onClick={() => setPicked([...new Set([...picked, ...pickableHits.map((s) => s.code)])])}>
+                {pickMode === "withdraw"
+                  ? `เลือกทั้ง ${pickableHits.length} ตำแหน่งที่มีสินค้าเพื่อเบิก`
+                  : `เลือกทั้ง ${pickableHits.length} ตำแหน่งว่างเพื่อรับเข้า`}
               </button>
             )}
           </div>
@@ -238,7 +265,13 @@ export function MapView({
         </div>
       </aside>
 
-      {modal && sel && (
+      {modal === "receiveMany" && (
+        <Modal onClose={() => setModal(null)}>
+          <ReceiveManyForm codes={picked} customer={pickedCustomer} customers={customers} onDone={onReceivedMany} onCancel={() => setModal(null)} />
+        </Modal>
+      )}
+
+      {modal && modal !== "receiveMany" && sel && (
         <Modal onClose={() => setModal(null)}>
           {modal === "reserve" && <ReserveForm s={sel} customers={customers} onDone={onDone} onCancel={() => setModal(null)} />}
           {modal === "receive" && <ReceiveForm s={sel} customers={customers} onDone={onDone} onCancel={() => setModal(null)} />}
@@ -250,15 +283,20 @@ export function MapView({
       )}
 
       {pickMode && (
-        <div className="pickbar" role="region" aria-label="ตำแหน่งที่เลือกเพื่อเบิก">
+        <div className="pickbar" role="region" aria-label={pickMode === "withdraw" ? "ตำแหน่งที่เลือกเพื่อเบิก" : "ตำแหน่งที่เลือกเพื่อรับเข้า"}>
           <span className="t">
-            {picked.length ? `เลือกแล้ว ${picked.length} ตำแหน่ง · ${pickedCustomer?.name ?? ""}` : "กดช่องที่มีสินค้าบนผังเพื่อเลือก"}
+            {picked.length
+              ? `เลือกแล้ว ${picked.length} ตำแหน่ง${pickedCustomer ? ` · ${pickedCustomer.name}` : ""}`
+              : pickMode === "withdraw" ? "กดช่องที่มีสินค้าบนผังเพื่อเลือก" : "กดช่องว่างบนผังเพื่อเลือกตำแหน่งที่จะรับเข้า"}
           </span>
           {picked.length > 0 && <button type="button" className="btn ghost" onClick={() => setPicked([])}>ล้าง</button>}
-          {picked.length > 0 && (
+          {picked.length > 0 && pickMode === "withdraw" && (
             <Link className="btn primary" href={`/withdraw?codes=${picked.join(",")}`} style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}>
               ทำใบเบิก →
             </Link>
+          )}
+          {picked.length > 0 && pickMode === "receive" && (
+            <button type="button" className="btn primary" onClick={() => setModal("receiveMany")}>รับสินค้าเข้า →</button>
           )}
         </div>
       )}
@@ -348,7 +386,6 @@ function Detail({ s, onAction }: { s: Slot; onAction: (k: ModalKind) => void }) 
           <div className="box">
             <div className="k">ลูกค้าเจ้าของสินค้า</div>
             <div className="v">{s.customer.name}</div>
-            {s.customer.phone && <div className="s">{s.customer.phone}</div>}
           </div>
           <div className="items">
             <div className="k">สินค้าบนพาเลทนี้</div>
@@ -357,6 +394,11 @@ function Detail({ s, onAction }: { s: Slot; onAction: (k: ModalKind) => void }) 
                 <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
                   <div className="n">{it.name}</div>
                   <div className="sku">{it.sku}</div>
+                  {(it.customsNo || it.containerNo) && (
+                    <div className="sku">
+                      {[it.customsNo && `ใบขน ${it.customsNo}`, it.containerNo && `ตู้ ${it.containerNo}`].filter(Boolean).join(" · ")}
+                    </div>
+                  )}
                 </div>
                 <div className="q">{it.qty} {it.unit}</div>
               </div>
@@ -525,6 +567,76 @@ function ReceiveForm({ s, customers, onDone, onCancel }: FormProps & { customers
         <input id="f-qty" type="number" min={1} inputMode="numeric" required value={qty} onChange={(e) => setQty(+e.target.value)} />
       </div>
       <Foot pending={pending} label="บันทึกรับเข้า" onCancel={onCancel} error={error} />
+    </form>
+  );
+}
+
+function ReceiveManyForm({ codes, customer, customers, onDone, onCancel }: {
+  codes: string[];
+  customer: { id: number; name: string } | null;
+  customers: CustomerOption[];
+  onDone: (r: ActionResult) => void;
+  onCancel: () => void;
+}) {
+  const { pending, error, run } = useSubmit(onDone);
+  // ถ้ามีตำแหน่งที่มีของหรือจองไว้ปนอยู่ รับได้เฉพาะลูกค้ารายนั้น
+  const allowed = customer ? customers.filter((c) => c.id === customer.id) : customers.filter((c) => c.products.length);
+  const [customerId, setCustomerId] = useState(allowed[0]?.id ?? 0);
+  const cust = allowed.find((c) => c.id === customerId) ?? allowed[0];
+  const [productId, setProductId] = useState(cust?.products[0]?.id ?? 0);
+  const product = cust?.products.find((p) => p.id === productId) ?? cust?.products[0];
+  const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries(codes.map((c) => [c, 10])));
+  const total = codes.reduce((n, c) => n + (qty[c] || 0), 0);
+
+  if (!cust || !cust.products.length) {
+    return (
+      <div style={formStyle}>
+        <h2>รับสินค้าเข้า {codes.length} ตำแหน่ง</h2>
+        <div className="msg err">ยังไม่มีสินค้าของลูกค้ารายนี้ในระบบ เพิ่มสินค้าที่หน้า &quot;สินค้า&quot; ก่อน</div>
+        <div className="actions"><button type="button" className="btn" onClick={onCancel}>ปิด</button></div>
+      </div>
+    );
+  }
+  return (
+    <form style={formStyle} onSubmit={(e) => {
+      e.preventDefault();
+      if (product) run(() => receiveStockMany({ productId: product.id, lines: codes.map((c) => ({ code: c, qty: qty[c] ?? 0 })) }));
+    }}>
+      <h2>รับสินค้าเข้า {codes.length} ตำแหน่ง</h2>
+      <div className="sub">สินค้าเดียวกันเข้าทุกตำแหน่งที่เลือก · ใส่จำนวนแยกแต่ละตำแหน่งได้</div>
+      <div className="field">
+        <label htmlFor="fm-cust">ลูกค้า</label>
+        <select id="fm-cust" value={cust.id} disabled={!!customer} onChange={(e) => {
+          const c = allowed.find((x) => x.id === +e.target.value);
+          setCustomerId(+e.target.value);
+          setProductId(c?.products[0]?.id ?? 0);
+        }}>
+          {allowed.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="fm-prod">สินค้า</label>
+        <select id="fm-prod" value={product?.id} onChange={(e) => setProductId(+e.target.value)}>
+          {cust.products.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="fm-all">จำนวนต่อตำแหน่ง ({product?.unit}) · ใส่ตรงนี้เพื่อใช้กับทุกตำแหน่ง</label>
+        <input id="fm-all" type="number" min={1} inputMode="numeric" placeholder="เช่น 10"
+          onChange={(e) => { const n = +e.target.value; if (n > 0) setQty(Object.fromEntries(codes.map((c) => [c, n]))); }} />
+      </div>
+      <div className="pick-list">
+        {codes.map((c) => (
+          <div key={c} className="pick-line">
+            <label htmlFor={`fm-q-${c}`} className="nm mono">{c}</label>
+            <input id={`fm-q-${c}`} type="number" min={1} inputMode="numeric" required style={{ width: 96 }}
+              value={qty[c] ?? ""} onChange={(e) => setQty({ ...qty, [c]: +e.target.value })} />
+            <span className="q">{product?.unit}</span>
+          </div>
+        ))}
+      </div>
+      <div className="sub" style={{ marginTop: 0 }}>รวม {total.toLocaleString()} {product?.unit}</div>
+      <Foot pending={pending} label={`บันทึกรับเข้า ${codes.length} ตำแหน่ง`} onCancel={onCancel} error={error} />
     </form>
   );
 }

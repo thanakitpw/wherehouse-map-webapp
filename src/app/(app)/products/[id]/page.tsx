@@ -30,7 +30,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
         <div>
           <p><Link href="/products">← สินค้าทั้งหมด</Link></p>
           <h1>{p.name}</h1>
-          <p className="mono">{p.sku} · คงเหลือ {total.toLocaleString()} {p.unit} ใน {rows.length} ตำแหน่ง</p>
+          <p className="mono">{p.sku}{p.customsNo ? ` · ใบขน ${p.customsNo}` : ""}{p.containerNo ? ` · ตู้ ${p.containerNo}` : ""} · คงเหลือ {total.toLocaleString()} {p.unit} ใน {rows.length} ตำแหน่ง</p>
           {low && <p><span className="tag low">ต่ำกว่าขั้นต่ำ {p.minQty.toLocaleString()} {p.unit}</span></p>}
         </div>
         <Link className="btn" style={{ flex: "none", display: "inline-flex", alignItems: "center" }} href={`/map?q=${encodeURIComponent(p.sku)}`}>ดูบนผังคลัง</Link>
@@ -61,6 +61,8 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
               <select id="p-unit" name="unit" defaultValue={p.unit}>{units.map((u) => <option key={u}>{u}</option>)}</select>
             </div>
             <div className="field"><label htmlFor="p-min">ขั้นต่ำ (0 = ไม่เตือน)</label><input id="p-min" name="minQty" type="number" min={0} defaultValue={p.minQty} /></div>
+            <div className="field"><label htmlFor="p-customs">เลขที่ใบขน</label><input id="p-customs" name="customsNo" className="mono" defaultValue={p.customsNo} placeholder="เช่น A0301630710001" /></div>
+            <div className="field"><label htmlFor="p-container">หมายเลขตู้คอนเทนเนอร์</label><input id="p-container" name="containerNo" className="mono" defaultValue={p.containerNo} placeholder="เช่น LEOU1234567" /></div>
             <SubmitButton>บันทึก</SubmitButton>
           </div>
         </ActionForm>

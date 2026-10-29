@@ -13,7 +13,7 @@ export default async function WithdrawalPage({ params }: PageProps<"/withdraw/[i
   const db = getDb();
   const actor = alias(users, "actor");
   const [w] = await db
-    .select({ id: withdrawals.id, at: withdrawals.createdAt, note: withdrawals.note, customer: customers.name, phone: customers.phone, by: actor.name })
+    .select({ id: withdrawals.id, at: withdrawals.createdAt, note: withdrawals.note, customer: customers.name, by: actor.name })
     .from(withdrawals)
     .innerJoin(customers, eq(withdrawals.customerId, customers.id))
     .leftJoin(actor, eq(withdrawals.userId, actor.id))
@@ -54,7 +54,6 @@ export default async function WithdrawalPage({ params }: PageProps<"/withdraw/[i
         <div className="box">
           <div className="k">ลูกค้า</div>
           <div className="v">{w.customer}</div>
-          {w.phone && <div className="s">{w.phone}</div>}
           {w.note && <div className="s">หมายเหตุ: {w.note}</div>}
         </div>
 

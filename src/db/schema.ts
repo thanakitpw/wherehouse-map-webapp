@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
 
-// ลูกค้าที่ฝากของในคลัง
+// ลูกค้าที่ฝากของในคลัง (phone ไม่แสดงในแอปแล้ว เก็บคอลัมน์ไว้เพื่อไม่ให้ข้อมูลเก่าหาย)
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -35,6 +35,7 @@ export const units = pgTable("units", {
 
 // สินค้าของลูกค้าแต่ละราย (SKU ห้ามซ้ำทั้งระบบ)
 // minQty = จำนวนขั้นต่ำ ถ้าคงเหลือรวมต่ำกว่านี้จะขึ้นเตือนที่แดชบอร์ด (0 = ไม่เตือน)
+// customsNo = เลขที่ใบขนสินค้า, containerNo = หมายเลขตู้คอนเทนเนอร์ (ไม่บังคับกรอก)
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id").notNull().references(() => customers.id),
@@ -43,6 +44,8 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   unit: text("unit").notNull().default("ลัง"),
   minQty: integer("min_qty").notNull().default(0),
+  customsNo: text("customs_no").notNull().default(""),
+  containerNo: text("container_no").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("products_category_id_idx").on(t.categoryId)]).enableRLS();
 

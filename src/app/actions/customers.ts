@@ -12,7 +12,7 @@ export async function createCustomer(_prev: FormState, fd: FormData): Promise<Fo
   await requireUser();
   const name = str(fd, "name");
   if (!name) return { error: "กรอกชื่อลูกค้า" };
-  await getDb().insert(customers).values({ name, phone: str(fd, "phone"), note: str(fd, "note") });
+  await getDb().insert(customers).values({ name, note: str(fd, "note") });
   revalidatePath("/", "layout");
   return { ok: `เพิ่มลูกค้า ${name} แล้ว` };
 }
@@ -22,7 +22,7 @@ export async function updateCustomer(_prev: FormState, fd: FormData): Promise<Fo
   const id = int(fd, "id");
   const name = str(fd, "name");
   if (!name) return { error: "กรอกชื่อลูกค้า" };
-  await getDb().update(customers).set({ name, phone: str(fd, "phone"), note: str(fd, "note") }).where(eq(customers.id, id));
+  await getDb().update(customers).set({ name, note: str(fd, "note") }).where(eq(customers.id, id));
   revalidatePath("/", "layout");
   return { ok: "บันทึกแล้ว" };
 }

@@ -1,7 +1,9 @@
 // ข้อมูลที่ส่งจาก server ไปให้หน้าผังคลัง (ต้องเป็น JSON ธรรมดา)
 export type SlotStatus = "occ" | "res" | "empty";
 
-export type SlotItem = { stockId: number; productId: number; name: string; sku: string; qty: number; unit: string };
+export type SlotItem = {
+  stockId: number; productId: number; name: string; sku: string; qty: number; unit: string; customsNo: string; containerNo: string;
+};
 
 export type Slot = {
   code: string;
@@ -10,7 +12,7 @@ export type Slot = {
   pallet: number;
   level: number;
   status: SlotStatus;
-  customer: { id: number; name: string; phone: string } | null;
+  customer: { id: number; name: string } | null;
   items: SlotItem[];
   receivedAt: string | null;
   receivedBy: string | null;

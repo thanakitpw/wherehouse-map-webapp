@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq, or, sql } from "drizzle-orm";
+import { desc, eq, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
@@ -35,33 +35,62 @@ function done(ok: string): ActionResult {
   return { ok };
 }
 
-// รับสินค้าเข้าตำแหน่ง
+// รับสินค้าเข้าตำแหน่งเดียว
 export async function receiveStock(input: { code: string; productId: number; qty: number }): Promise<ActionResult> {
+  return receiveStockMany({ productId: input.productId, lines: [{ code: input.code, qty: input.qty }] });
+}
+
+// รับสินค้าตัวเดียวกันเข้าหลายตำแหน่งในครั้งเดียว (ตรวจทุกตำแหน่งก่อน ถ้าผิดสักตำแหน่งจะไม่บันทึกเลย)
+export async function receiveStockMany(input: { productId: number; lines: { code: string; qty: number }[] }): Promise<ActionResult> {
   const u = await guard();
   const db = getDb();
-  const qty = Math.floor(Number(input.qty));
-  if (!(qty > 0)) return { error: "จำนวนต้องมากกว่า 0" };
-  if (!(await locationExists(input.code))) return { error: "ไม่พบตำแหน่งนี้" };
+  const lines = input.lines.map((l) => ({ code: String(l.code), qty: Math.floor(Number(l.qty)) }));
+  if (!lines.length) return { error: "เลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง" };
+  if (new Set(lines.map((l) => l.code)).size !== lines.length) return { error: "มีตำแหน่งซ้ำกัน" };
+  if (lines.some((l) => !(l.qty > 0))) return { error: "จำนวนต้องมากกว่า 0 ทุกตำแหน่ง" };
 
   const [p] = await db.select().from(products).where(eq(products.id, input.productId));
   if (!p) return { error: "ไม่พบสินค้า" };
 
-  const owners = await stockCustomerIds(input.code);
-  if (owners.some((id) => id !== p.customerId)) return { error: "ตำแหน่งนี้มีสินค้าของลูกค้ารายอื่นอยู่แล้ว" };
+  const codes = lines.map((l) => l.code);
+  const [locs, owners, res] = await Promise.all([
+    db.select({ code: locations.code }).from(locations).where(inArray(locations.code, codes)),
+    db
+      .select({ code: stock.locationCode, customerId: products.customerId })
+      .from(stock)
+      .innerJoin(products, eq(stock.productId, products.id))
+      .where(inArray(stock.locationCode, codes)),
+    db.select().from(reservations).where(inArray(reservations.locationCode, codes)),
+  ]);
+  const known = new Set(locs.map((l) => l.code));
+  const missing = codes.find((c) => !known.has(c));
+  if (missing) return { error: `ไม่พบตำแหน่ง ${missing}` };
+  const otherOwner = owners.find((o) => o.customerId !== p.customerId);
+  if (otherOwner) return { error: `${otherOwner.code} มีสินค้าของลูกค้ารายอื่นอยู่แล้ว` };
+  const otherRes = res.find((r) => r.customerId !== p.customerId);
+  if (otherRes) return { error: `${otherRes.locationCode} จองไว้ให้ลูกค้ารายอื่น` };
 
-  const [r] = await db.select().from(reservations).where(eq(reservations.locationCode, input.code));
-  if (r && r.customerId !== p.customerId) return { error: "ตำแหน่งนี้จองไว้ให้ลูกค้ารายอื่น" };
-
-  await db
-    .insert(stock)
-    .values({ locationCode: input.code, productId: p.id, qty, receivedBy: u.id })
-    .onConflictDoUpdate({
-      target: [stock.locationCode, stock.productId],
-      set: { qty: sql`${stock.qty} + ${qty}`, receivedAt: new Date(), receivedBy: u.id },
-    });
-  if (r) await db.delete(reservations).where(eq(reservations.id, r.id));
-  await db.insert(movements).values({ type: "IN", locationCode: input.code, customerId: p.customerId, productId: p.id, qty, userId: u.id });
-  return done(`รับ ${p.name} ${qty} ${p.unit} เข้า ${input.code} แล้ว`);
+  await db.transaction(async (tx) => {
+    for (const l of lines) {
+      await tx
+        .insert(stock)
+        .values({ locationCode: l.code, productId: p.id, qty: l.qty, receivedBy: u.id })
+        .onConflictDoUpdate({
+          target: [stock.locationCode, stock.productId],
+          set: { qty: sql`${stock.qty} + ${l.qty}`, receivedAt: new Date(), receivedBy: u.id },
+        });
+    }
+    if (res.length) await tx.delete(reservations).where(inArray(reservations.id, res.map((r) => r.id)));
+    await tx.insert(movements).values(
+      lines.map((l) => ({ type: "IN" as const, locationCode: l.code, customerId: p.customerId, productId: p.id, qty: l.qty, userId: u.id })),
+    );
+  });
+  const total = lines.reduce((n, l) => n + l.qty, 0);
+  return done(
+    lines.length === 1
+      ? `รับ ${p.name} ${total} ${p.unit} เข้า ${lines[0].code} แล้ว`
+      : `รับ ${p.name} รวม ${total} ${p.unit} เข้า ${lines.length} ตำแหน่งแล้ว`,
+  );
 }
 
 // เบิกสินค้าออกจากตำแหน่งเดียว (ออกใบเบิกให้อัตโนมัติ)

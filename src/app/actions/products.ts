@@ -17,6 +17,8 @@ function readProduct(fd: FormData) {
     name: str(fd, "name"),
     unit: str(fd, "unit") || "ลัง",
     minQty: Number.isInteger(minQty) && minQty > 0 ? minQty : 0,
+    customsNo: str(fd, "customsNo").toUpperCase(),
+    containerNo: str(fd, "containerNo").toUpperCase().replace(/\s+/g, ""),
   };
 }
 

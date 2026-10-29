@@ -40,7 +40,6 @@ export default async function CustomerPage({ params }: PageProps<"/customers/[id
           <input type="hidden" name="id" value={c.id} />
           <div className="form-grid">
             <div className="field"><label htmlFor="c-name">ชื่อลูกค้า / บริษัท</label><input id="c-name" name="name" defaultValue={c.name} required /></div>
-            <div className="field"><label htmlFor="c-phone">เบอร์โทร</label><input id="c-phone" name="phone" defaultValue={c.phone} /></div>
             <div className="field"><label htmlFor="c-note">หมายเหตุ</label><input id="c-note" name="note" defaultValue={c.note} /></div>
             <SubmitButton>บันทึก</SubmitButton>
           </div>

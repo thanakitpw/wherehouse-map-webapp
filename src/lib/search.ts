@@ -5,7 +5,8 @@ export const STATUS_TEXT = { occ: "มีสินค้า", res: "จองแ
 // คำค้นที่ขึ้นต้นด้วยรหัสแร็ค (aa–af) ถือว่าเป็นการค้นหาตำแหน่ง เช่น "AC-05" หรือ "ac05"
 const CODE_Q = /^a[a-f](?:-|\d|$)/;
 
-const itemMatches = (it: SlotItem, q: string) => it.name.toLowerCase().includes(q) || it.sku.toLowerCase().includes(q);
+const itemMatches = (it: SlotItem, q: string) =>
+  [it.name, it.sku, it.customsNo, it.containerNo].some((v) => v.toLowerCase().includes(q));
 
 export function isHit(s: Slot, q: string) {
   if (!q) return false;
